@@ -2,6 +2,10 @@ fastapi
 uvicorn
 groq
 pydantic
+pydantic-settings
 python-dotenv
 youtube-search-python
+ytmusicapi
 spotipy
+pinecone-client
+httpx

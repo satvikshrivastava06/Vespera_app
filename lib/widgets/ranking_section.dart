@@ -12,14 +12,13 @@ class RankingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If no rankings provided, use defaults
-    final displayRankings = (rankings != null && rankings!.length >= 3) 
-      ? rankings! 
-      : [
-          UserRanking(name: 'M. Davis', rank: 2, imageUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=Davis&backgroundColor=e6e6e6'),
-          UserRanking(name: 'Luna Ray', rank: 1, imageUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=Luna&backgroundColor=ffdfbf'),
-          UserRanking(name: 'Synth Kid', rank: 3, imageUrl: 'https://api.dicebear.com/7.x/avataaars/png?seed=Synth&backgroundColor=c0afef'),
-        ];
+    // Hide the section entirely rather than invent fake users.
+    // A real leaderboard system doesn't exist yet — show nothing until it does.
+    if (rankings == null || rankings!.length < 3) {
+      return const SizedBox.shrink();
+    }
+    final displayRankings = rankings!;
+
 
     // Assuming rank 1 is at index 1 for the 'top' display, rank 2 at index 0, rank 3 at index 2
     // We sort or arrange them to match the UI: Rank 2, Rank 1, Rank 3

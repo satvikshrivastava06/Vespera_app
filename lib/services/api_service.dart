@@ -1,21 +1,31 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vespera/models/home_feed.dart';
 
 class ApiService {
-  static String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:8000/api/v1';
-    try {
-      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-        return 'http://localhost:8000/api/v1';
-      }
-    } catch (e) {
-      // Fallback if Platform is not available (though it should be in Flutter)
+  // Set at build time with:
+  //   flutter run --dart-define=VESPERA_API_BASE_URL=https://your-backend.example.com/api/v1
+  static const String _baseUrl = String.fromEnvironment(
+    'VESPERA_API_BASE_URL',
+    defaultValue: 'http://localhost:8000/api/v1',
+  );
+
+  /// Opens a Spotify track in the Spotify app, falling back to the web player.
+  static Future<void> openInSpotify(String spotifyTrackId) async {
+    final appUri = Uri.parse('spotify:track:$spotifyTrackId');
+    final webUri =
+        Uri.parse('https://open.spotify.com/track/$spotifyTrackId');
+    if (!await launchUrl(appUri)) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
     }
-    return 'http://10.0.2.2:8000/api/v1';
+  }
+
+  /// Opens a YouTube Music track by video ID.
+  static Future<void> openInYouTubeMusic(String videoId) async {
+    final uri = Uri.parse('https://music.youtube.com/watch?v=$videoId');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Future<HomeFeedResponse> fetchHomeFeed({
@@ -84,11 +94,7 @@ class ApiService {
     return HomeFeedResponse(
       greeting: "Welcome to Vespera",
       aiMessage: "Curating your personal soundscape...",
-      rankings: [
-        UserRanking(name: "Luna Ray", rank: 1, imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"),
-        UserRanking(name: "M. Davis", rank: 2, imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Davis"),
-        UserRanking(name: "Synth Kid", rank: 3, imageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kid"),
-      ],
+      rankings: [], // No leaderboard system exists yet — hide rather than fabricate
       popularPlaylists: [
         PlaylistItem(title: "Neon Nights", subtitle: "Cyberpunk Vibe", imageUrl: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853", audioId: "tV_vIdS5X-M", searchQuery: "Cyberpunk music mix"),
         PlaylistItem(title: "Classic Mood", subtitle: "Curated for you", imageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea", audioId: "jfKfPfyJRdk", searchQuery: "Classic jazz mix"),

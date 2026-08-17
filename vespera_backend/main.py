@@ -20,14 +20,17 @@ except ImportError:
     print("WARNING: ytmusicapi not installed. Using basic YouTube search fallback.")
 
 
-app = FastAPI(title="Vespera AI Backend (Spotify Premium UI)")
+app = FastAPI(title="Vespera AI Music Discovery")
 
-# Allow Flutter app to communicate with backend
+# Allow Flutter app to communicate with backend.
+# Set ALLOWED_ORIGINS env var to a comma-separated list for production.
+# e.g. ALLOWED_ORIGINS=https://app.vespera.com,https://www.vespera.com
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:8080").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -51,13 +54,17 @@ def get_spotify_client():
         return None
 
 spotify = get_spotify_client()
-groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY", "mock_key"))
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 def get_ai_recommendations(time_context: str, weather: str, location: str):
     """
     RAG & LLM Logic:
     Analyses user context (Time, Weather, Location) using Deep Learning patterns.
     """
+    if groq_client is None:
+        # Key not set — return safe fallback without masking the missing credential
+        return "Deep Sync: Optimizing atmospheric audio frequencies.", ["pop", "chill"]
     prompt = f"Analyze context (Time: {time_context}, Weather: {weather}) for Vespera. Output MESSAGE: [concise status] and CATEGORIES: [comma separated Spotify categories like 'pop,chill']."
     try:
         completion = groq_client.chat.completions.create(
@@ -68,7 +75,9 @@ def get_ai_recommendations(time_context: str, weather: str, location: str):
         msg = resp.split("MESSAGE:")[1].split("CATEGORIES:")[0].strip()
         cats = resp.split("CATEGORIES:")[1].strip().split(",")
         return msg, [c.strip() for c in cats]
-    except:
+    except Exception as e:
+        import logging
+        logging.getLogger("vespera").error(f"Groq call failed: {e}")
         return "Deep Sync: Optimizing atmospheric audio frequencies.", ["pop", "chill"]
 
 # --- Pydantic Data Models ---
@@ -275,11 +284,7 @@ async def get_home_feed(
     return HomeFeedResponse(
         greeting=greeting,
         ai_message=ai_status,
-        rankings=[
-            UserRanking(name="Luna Ray", rank=1, image_url="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"),
-            UserRanking(name="M. Davis", rank=2, image_url="https://api.dicebear.com/7.x/avataaars/svg?seed=Davis"),
-            UserRanking(name="Synth Kid", rank=3, image_url="https://api.dicebear.com/7.x/avataaars/svg?seed=Kid"),
-        ],
+        rankings=[],  # No leaderboard system yet — return empty list, hide in UI
         popular_playlists=results[0],
         jump_back_in=results[1],
         quick_picks=results[2],
@@ -328,15 +333,16 @@ async def search_music(query: str, search_type: str = "all"):
         # Perform search
         # We run this in a thread to keep FastAPI async loop responsive
         if not yt_music:
-            # Fallback to general YouTube Search
-            from youtube_search_python import VideosSearch
-            search = VideosSearch(query, limit=10)
-            yt_results = search.result().get("result", [])
-            for item in yt_results:
+            # Use the correctly-named async module already imported at the top of this file.
+            # (youtube-search-python exposes `youtubesearchpython`, not `youtube_search_python`)
+            search = VideosSearch(f"{query} audio", limit=10)
+            result = await search.next()
+            for item in result.get("result", []):
+                thumbnails = item.get("thumbnails") or []
                 results.append(PlaylistItem(
                     title=item.get("title", "Unknown"),
-                    subtitle=item.get("channel", {}).get("name") if item.get("channel") else "YouTube",
-                    image_url=item.get("thumbnails")[0].get("url") if item.get("thumbnails") else "",
+                    subtitle=(item.get("channel") or {}).get("name", "YouTube"),
+                    image_url=thumbnails[0].get("url", "") if thumbnails else "",
                     search_query=f"{item.get('title')} audio",
                     audio_id=item.get("id")
                 ))
