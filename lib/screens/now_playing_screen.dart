@@ -1,11 +1,27 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:vespera/services/api_service.dart';
 
 enum PlayerUIStyle { darkGlass, lightNeumorphic }
 
 class NowPlayingScreen extends StatefulWidget {
-  const NowPlayingScreen({super.key});
+  final String title;
+  final String artist;
+  final String? appleMusicUrl;
+  final String? spotifyTrackId;
+  final String? youtubeVideoId;
+
+  const NowPlayingScreen({
+    super.key,
+    this.title = 'Attention',
+    this.artist = 'Charlie Puth',
+    this.appleMusicUrl,
+    this.spotifyTrackId,
+    this.youtubeVideoId,
+  });
 
   // Design Constants - Light Theme Focus
   static const Color kPrimaryPurple = Color(0xFF863FF0);
@@ -40,6 +56,35 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     setState(() {
       _isControlBarTransparent = !_isControlBarTransparent;
     });
+  }
+
+  Future<void> _handleOpenAppleMusic() async {
+    final url = widget.appleMusicUrl ??
+        'https://music.apple.com/search?term=${Uri.encodeComponent("${widget.title} ${widget.artist}")}';
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch Apple Music URL: $url');
+    }
+  }
+
+  Future<void> _handleOpenSpotify() async {
+    if (widget.spotifyTrackId != null && widget.spotifyTrackId!.isNotEmpty) {
+      await ApiService.openInSpotify(widget.spotifyTrackId!);
+    } else {
+      final uri = Uri.parse(
+          'https://open.spotify.com/search/${Uri.encodeComponent("${widget.title} ${widget.artist}")}');
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _handleOpenYouTubeMusic() async {
+    if (widget.youtubeVideoId != null && widget.youtubeVideoId!.isNotEmpty) {
+      await ApiService.openInYouTubeMusic(widget.youtubeVideoId!);
+    } else {
+      final uri = Uri.parse(
+          'https://music.youtube.com/search?q=${Uri.encodeComponent("${widget.title} ${widget.artist}")}');
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -79,6 +124,9 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     onToggleLike: () => setState(() => _isLiked = !_isLiked),
                     onShowLyrics: () => setState(() => _showLyrics = true),
                     onToggleStyle: _toggleStyle,
+                    onOpenAppleMusic: _handleOpenAppleMusic,
+                    onOpenSpotify: _handleOpenSpotify,
+                    onOpenYouTubeMusic: _handleOpenYouTubeMusic,
                   )
                 : _LightNeumorphicView(
                     isPlaying: _isPlaying,
@@ -105,6 +153,9 @@ class _DarkGlassView extends StatelessWidget {
   final VoidCallback onToggleLike;
   final VoidCallback onShowLyrics;
   final VoidCallback onToggleStyle;
+  final VoidCallback onOpenAppleMusic;
+  final VoidCallback onOpenSpotify;
+  final VoidCallback onOpenYouTubeMusic;
 
   const _DarkGlassView({
     required this.isPlaying,
@@ -113,6 +164,9 @@ class _DarkGlassView extends StatelessWidget {
     required this.onToggleLike,
     required this.onShowLyrics,
     required this.onToggleStyle,
+    required this.onOpenAppleMusic,
+    required this.onOpenSpotify,
+    required this.onOpenYouTubeMusic,
   });
 
   @override
@@ -177,6 +231,14 @@ class _DarkGlassView extends StatelessWidget {
             onToggle: onTogglePlay,
           ),
 
+          const SizedBox(height: 20),
+
+          _ListenElsewhereRow(
+            onOpenAppleMusic: onOpenAppleMusic,
+            onOpenSpotify: onOpenSpotify,
+            onOpenYouTubeMusic: onOpenYouTubeMusic,
+          ),
+
           const Spacer(flex: 4),
 
           // Bottom Wave Panel (Triggers Lyrics)
@@ -184,6 +246,62 @@ class _DarkGlassView extends StatelessWidget {
             onTap: onShowLyrics,
             child: const _LyricsWavePanel(isHeader: false),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ListenElsewhereRow extends StatelessWidget {
+  final VoidCallback onOpenAppleMusic;
+  final VoidCallback onOpenSpotify;
+  final VoidCallback onOpenYouTubeMusic;
+
+  const _ListenElsewhereRow({
+    required this.onOpenAppleMusic,
+    required this.onOpenSpotify,
+    required this.onOpenYouTubeMusic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Required badge — this preview is playing via the iTunes Search API
+          GestureDetector(
+            onTap: onOpenAppleMusic,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(FontAwesomeIcons.apple, color: Colors.white, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Listen on Apple Music',
+                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          _NeumorphicGlassButton(icon: FontAwesomeIcons.spotify, onTap: onOpenSpotify, size: 44),
+          const SizedBox(width: 10),
+          _NeumorphicGlassButton(icon: FontAwesomeIcons.youtube, onTap: onOpenYouTubeMusic, size: 44),
         ],
       ),
     );
