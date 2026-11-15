@@ -50,6 +50,9 @@ __pycache__/
 *$py.class
 *.env
 !.env.example
+*.db
+*.db-shm
+*.db-wal
 
 # Node / JS
 node_modules/
