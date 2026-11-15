@@ -6,13 +6,15 @@ VSP-009: authenticated path, typed response.
 VSP-010: real intent compiler, structured intent.
 VSP-011: PostgreSQL FTS/tag retrieval, recommendation_trace persistence.
 VSP-012: session planner adds session_id and queue.
+
+Rate limit: 20 requests per minute per user (prevents LLM API abuse).
 """
 
 from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +24,7 @@ from app.domain.retrieval.retriever import CandidateResult, retrieve
 from app.domain.retrieval.tracer import persist_trace
 from app.infrastructure.database import get_db
 from app.infrastructure.models import CatalogTrackIndex, DeviceToken
+from app.infrastructure.rate_limit import check_rate_limit
 from app.schemas.twilight import (
     TwilightMode,
     TwilightRequest,
@@ -60,9 +63,11 @@ async def _catalog_version(db: AsyncSession) -> str | None:
 @router.post("/twilight/agent", response_model=TwilightResponse, status_code=200)
 async def twilight_agent(
     body: TwilightRequest,
+    request: Request,
     device: DeviceToken = Depends(_require_device),
     db: AsyncSession = Depends(get_db),
 ) -> TwilightResponse:
+    await check_rate_limit(request, "twilight_agent", max_calls=20, window_seconds=60)
     trace_id = str(uuid.uuid4())
     request_id = body.request_id or str(uuid.uuid4())
     text = body.text.strip()

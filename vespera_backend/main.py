@@ -111,29 +111,28 @@ async def health() -> dict:
     """
     from app.infrastructure.database import AsyncSessionLocal
     from app.infrastructure.models import CatalogTrackIndex
-    from sqlalchemy import func, select
+    from sqlalchemy import select, func
 
     db_ok = False
     catalog_tracks = 0
     session_eligible = 0
+    generated_at = None
 
     try:
         async with AsyncSessionLocal() as session:
-            row = await session.execute(
-                select(
-                    func.count(CatalogTrackIndex.id).label("total"),
-                    func.sum(
-                        CatalogTrackIndex.session_eligible.cast(type_=None)
-                        if False  # SQLite compat — use Python filter below
-                        else CatalogTrackIndex.session_eligible
-                    ).label("eligible"),
-                )
-            )
-            # SQLite stores bool as int; Postgres as bool — handle both
+            # Get counts
             result = await session.execute(select(CatalogTrackIndex))
             rows = result.scalars().all()
             catalog_tracks = len(rows)
             session_eligible = sum(1 for r in rows if r.session_eligible)
+            
+            # Get latest catalog_generated_at
+            if rows:
+                max_result = await session.execute(
+                    select(func.max(CatalogTrackIndex.catalog_generated_at))
+                )
+                generated_at = max_result.scalar_one_or_none()
+            
             db_ok = True
     except Exception as exc:
         log.error("Health check DB error: %s", exc)
@@ -143,6 +142,7 @@ async def health() -> dict:
         "db": "ok" if db_ok else "error",
         "catalog_tracks": catalog_tracks,
         "session_eligible": session_eligible,
+        "generated_at": generated_at.isoformat() if generated_at else None,
         "version": "0.12.0",
     }
 
