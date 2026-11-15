@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vespera/screens/now_playing_screen.dart';
 import 'package:vespera/screens/search_screen.dart';
+import 'package:vespera/services/audio_service.dart';
 
 class PlayerMainScreen extends StatefulWidget {
   const PlayerMainScreen({super.key});
@@ -12,8 +13,6 @@ class PlayerMainScreen extends StatefulWidget {
 }
 
 class _PlayerMainScreenState extends State<PlayerMainScreen> {
-  bool _isPlaying = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,28 +85,40 @@ class _PlayerMainScreenState extends State<PlayerMainScreen> {
             left: 14,
             right: 14,
             bottom: 24,
-            child: _PremiumMiniPlayer(
-              isPlaying: _isPlaying,
-              onPlayPause: () => setState(() => _isPlaying = !_isPlaying),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (c, a1, a2) => const NowPlayingScreen(),
-                    transitionsBuilder: (c, anim, a2, child) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 1),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(
-                          parent: anim,
-                          curve: Curves.easeOutCubic,
-                        )),
-                        child: child,
-                      );
-                    },
-                    transitionDuration: const Duration(milliseconds: 550),
-                  ),
+            child: ListenableBuilder(
+              listenable: AudioPlayerService(),
+              builder: (context, _) {
+                final audio = AudioPlayerService();
+                return _PremiumMiniPlayer(
+                  isPlaying: audio.isPlaying,
+                  title: audio.currentTitle ?? 'Nothing playing',
+                  artist: audio.currentArtist ?? '',
+                  imageUrl: audio.currentImageUrl,
+                  onPlayPause: () {
+                    if (audio.currentTrack == null) return;
+                    audio.isPlaying ? audio.pause() : audio.resume();
+                  },
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (c, a1, a2) => const NowPlayingScreen(),
+                        transitionsBuilder: (c, anim, a2, child) {
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 1),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(
+                              parent: anim,
+                              curve: Curves.easeOutCubic,
+                            )),
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 550),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -432,11 +443,17 @@ class _TrackRow extends StatelessWidget {
 
 class _PremiumMiniPlayer extends StatelessWidget {
   final bool isPlaying;
+  final String title;
+  final String artist;
+  final String? imageUrl;
   final VoidCallback onPlayPause;
   final VoidCallback onTap;
 
   const _PremiumMiniPlayer({
     required this.isPlaying,
+    required this.title,
+    required this.artist,
+    this.imageUrl,
     required this.onPlayPause,
     required this.onTap,
   });
@@ -472,8 +489,13 @@ class _PremiumMiniPlayer extends StatelessWidget {
                     ],
                     border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
                   ),
-                  child: const CircleAvatar(
-                    backgroundImage: NetworkImage('https://picsum.photos/seed/artist123/200/200'),
+                  child: CircleAvatar(
+                    backgroundImage: (imageUrl != null && imageUrl!.isNotEmpty)
+                        ? NetworkImage(imageUrl!)
+                        : null,
+                    child: (imageUrl == null || imageUrl!.isEmpty)
+                        ? const Icon(Icons.music_note_rounded)
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 18),
@@ -483,7 +505,9 @@ class _PremiumMiniPlayer extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Attention',
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 22,
@@ -491,7 +515,9 @@ class _PremiumMiniPlayer extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Charlie Puth',
+                        artist.isEmpty ? ' ' : artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
                           color: Colors.white.withOpacity(0.65),
                           fontSize: 16,

@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:vespera/screens/home_screen.dart';
+import 'package:vespera/services/auth_service.dart';
 import 'package:vespera/widgets/vespera_style.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.vespera.app.playback',
+    androidNotificationChannelName: 'Vespera playback',
+    androidNotificationOngoing: true,
+  );
+  // VSP-007: Ensure this install has an anonymous device-bound token.
+  // This is a no-op on subsequent launches when the token already exists.
+  await AuthService().ensureBootstrapped();
   runApp(const VesperaApp());
 }
 

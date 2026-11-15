@@ -1,78 +1,220 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vespera/models/playable_track.dart';
 
-/// Global singleton audio service used across all screens.
-/// Plays 30-second iTunes previews (discovery model — no YouTube stream extraction).
-class AudioPlayerService {
+/// Global singleton. Mini player and Now Playing read this; do not dispose it
+/// from a screen.
+class AudioPlayerService extends ChangeNotifier {
   static final AudioPlayerService _instance = AudioPlayerService._internal();
   factory AudioPlayerService() => _instance;
-  AudioPlayerService._internal();
+  AudioPlayerService._internal() {
+    _player.playerStateStream.listen((state) {
+      isPlaying = state.playing &&
+          state.processingState != ProcessingState.completed &&
+          state.processingState != ProcessingState.idle;
+      isLoading = state.processingState == ProcessingState.loading ||
+          state.processingState == ProcessingState.buffering;
+      if (state.processingState == ProcessingState.completed) {
+        isPlaying = false;
+      }
+      notifyListeners();
+    });
+    _player.currentIndexStream.listen((index) {
+      if (index == null || index < 0 || index >= _queue.length) return;
+      _index = index;
+      notifyListeners();
+    });
+  }
 
   final AudioPlayer _player = AudioPlayer();
+  List<PlayableTrack> _queue = [];
+  int _index = 0;
 
-  String? currentTitle;
+  bool isPlaying = false;
+  bool isLoading = false;
+  String? lastError;
 
-  /// Fetches and plays the iTunes 30-second preview for the given [title].
-  /// [audioId] is kept in the signature for API compatibility but is unused —
-  /// preview is resolved via iTunes Search instead of YouTube stream extraction.
-  Future<void> playSong(String audioId, String title) async {
-    if (title.isEmpty) {
-      debugPrint('AudioPlayerService: empty title — skipping');
-      return;
+  PlayableTrack? get currentTrack =>
+      _queue.isEmpty || _index < 0 || _index >= _queue.length
+          ? null
+          : _queue[_index];
+
+  String? get currentTitle => currentTrack?.title;
+  String? get currentArtist => currentTrack?.artist;
+  String? get currentSpotifyId => currentTrack?.spotifyTrackId;
+  String? get currentYoutubeId => currentTrack?.youtubeVideoId;
+  String? get currentImageUrl => currentTrack?.imageUrl;
+  List<PlayableTrack> get queue => List.unmodifiable(_queue);
+  int get currentIndex => _index;
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
+
+  List<HandoffLink> get currentHandoffLinks {
+    final track = currentTrack;
+    if (track == null) return const [];
+    final links = <HandoffLink>[];
+    final jamendo = track.jamendoShareUrl;
+    if (jamendo != null && jamendo.isNotEmpty) {
+      final uri = Uri.tryParse(jamendo);
+      if (uri != null) {
+        links.add(HandoffLink(
+          label: 'Listen on Jamendo',
+          uri: uri,
+          kind: HandoffKind.jamendo,
+        ));
+      }
     }
-    await _playiTunesPreview(title, '');
+    final apple = track.appleMusicUrl;
+    if (apple != null && apple.isNotEmpty) {
+      final uri = Uri.tryParse(apple);
+      if (uri != null) {
+        links.add(HandoffLink(
+          label: 'Listen on Apple Music',
+          uri: uri,
+          kind: HandoffKind.apple,
+        ));
+      }
+    }
+    final spotifyId = track.spotifyTrackId;
+    if (spotifyId != null && spotifyId.isNotEmpty) {
+      links.add(HandoffLink(
+        label: 'Spotify',
+        uri: Uri.parse('https://open.spotify.com/track/$spotifyId'),
+        kind: HandoffKind.spotify,
+      ));
+    }
+    final youtubeId = track.youtubeVideoId;
+    if (youtubeId != null && youtubeId.isNotEmpty) {
+      links.add(HandoffLink(
+        label: 'YouTube Music',
+        uri: Uri.parse('https://music.youtube.com/watch?v=$youtubeId'),
+        kind: HandoffKind.youtube,
+      ));
+    }
+    return links;
   }
 
-  /// Plays a 30-second iTunes preview resolved from [searchQuery].
-  /// [searchQuery] should be "Title Artist audio" format from the backend.
-  Future<void> playFromSearch(String searchQuery, String title) async {
-    if (searchQuery.isEmpty) {
-      debugPrint('AudioPlayerService: empty searchQuery for "$title" — skipping');
-      return;
-    }
-    // Strip the trailing " audio" suffix if present, since iTunes handles that
-    final cleanQuery = searchQuery.replaceAll(RegExp(r'\s+audio$', caseSensitive: false), '').trim();
-    await _playiTunesPreview(cleanQuery, '');
-  }
-
-  Future<void> _playiTunesPreview(String term, String artist) async {
-    final query = Uri.encodeComponent(artist.isNotEmpty ? '$term $artist' : term);
-    final url = Uri.parse(
-      'https://itunes.apple.com/search?term=$query&media=music&entity=song&limit=1',
+  /// Home/Explore still pass titles without a licensed stream URL.
+  /// iTunes promotional previews are not session audio (ADR-001).
+  Future<bool> playSong(String audioId, String title) {
+    return playTrack(
+      PlayableTrack(
+        id: audioId.isEmpty ? title : audioId,
+        title: title,
+        sessionEligible: false,
+      ),
     );
+  }
+
+  Future<bool> playFromSearch(String searchQuery, String title) {
+    return playSong(searchQuery, title);
+  }
+
+  Future<bool> playTrack(
+    PlayableTrack track, {
+    List<PlayableTrack>? queue,
+  }) async {
+    final upcoming = queue ?? [track];
+    final start = queue == null
+        ? 0
+        : upcoming.indexWhere((item) => item.id == track.id);
+    return loadQueue(
+      upcoming,
+      initialIndex: start < 0 ? 0 : start,
+    );
+  }
+
+  Future<bool> loadQueue(
+    List<PlayableTrack> tracks, {
+    int initialIndex = 0,
+  }) async {
+    final eligible = tracks
+        .where(
+          (t) =>
+              t.sessionEligible &&
+              t.audioUrl != null &&
+              t.audioUrl!.isNotEmpty,
+        )
+        .toList();
+    if (eligible.isEmpty) {
+      lastError =
+          'No licensed stream for "${tracks.isEmpty ? 'this track' : tracks[initialIndex.clamp(0, tracks.length - 1)].title}"';
+      isPlaying = false;
+      isLoading = false;
+      notifyListeners();
+      return false;
+    }
+    var index = initialIndex.clamp(0, eligible.length - 1);
+    if (tracks.length == eligible.length) {
+      index = initialIndex.clamp(0, eligible.length - 1);
+    } else {
+      index = 0;
+    }
     try {
-      currentTitle = term;
-      final response = await http.get(url);
-      if (response.statusCode != 200) {
-        debugPrint('AudioPlayerService: iTunes lookup failed HTTP ${response.statusCode}');
-        return;
-      }
-      final results = (json.decode(response.body)['results'] as List?) ?? [];
-      if (results.isEmpty) {
-        debugPrint('AudioPlayerService: no iTunes results for "$term"');
-        return;
-      }
-      final previewUrl = results.first['previewUrl'] as String?;
-      if (previewUrl == null) {
-        debugPrint('AudioPlayerService: no previewUrl for "$term"');
-        return;
-      }
-      await _player.setUrl(previewUrl);
-      _player.play();
-      debugPrint('AudioPlayerService: playing 30s preview for "$term"');
+      _queue = eligible;
+      _index = index;
+      lastError = null;
+      isLoading = true;
+      notifyListeners();
+      await _player.setAudioSources(
+        eligible.map(_sourceFor).toList(),
+        initialIndex: index,
+      );
+      await _player.play();
+      isPlaying = true;
+      isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
-      debugPrint('AudioPlayerService: error fetching preview for "$term": $e');
+      lastError = e.toString();
+      isPlaying = false;
+      isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
-  // ── Deep-link hand-offs ──────────────────────────────────────────────────
+  AudioSource _sourceFor(PlayableTrack track) {
+    return AudioSource.uri(
+      Uri.parse(track.audioUrl!),
+      tag: MediaItem(
+        id: track.id,
+        title: track.title,
+        artist: track.artist,
+        artUri: track.artUri,
+      ),
+    );
+  }
 
-  /// Opens the track in Spotify (app → web fallback).
+  Future<void> pause() async {
+    await _player.pause();
+    isPlaying = false;
+    notifyListeners();
+  }
+
+  Future<void> resume() async {
+    await _player.play();
+    isPlaying = true;
+    notifyListeners();
+  }
+
+  Future<void> next() async {
+    if (_index + 1 >= _queue.length) return;
+    await _player.seekToNext();
+  }
+
+  Future<void> previous() async {
+    if (_index <= 0) {
+      await _player.seek(Duration.zero);
+      return;
+    }
+    await _player.seekToPrevious();
+  }
+
   Future<void> openInSpotify(String spotifyTrackId) async {
+    if (spotifyTrackId.isEmpty) return;
     final appUri = Uri.parse('spotify:track:$spotifyTrackId');
     final webUri = Uri.parse('https://open.spotify.com/track/$spotifyTrackId');
     if (!await launchUrl(appUri)) {
@@ -80,20 +222,15 @@ class AudioPlayerService {
     }
   }
 
-  /// Opens the track in YouTube Music.
   Future<void> openInYouTubeMusic(String videoId) async {
-    final uri = Uri.parse('https://music.youtube.com/watch?v=$videoId');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (videoId.isEmpty) return;
+    await launchUrl(
+      Uri.parse('https://music.youtube.com/watch?v=$videoId'),
+      mode: LaunchMode.externalApplication,
+    );
   }
 
-  // ── Playback helpers ─────────────────────────────────────────────────────
-
-  void pause() => _player.pause();
-  void resume() => _player.play();
-
-  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
-
-  void dispose() {
-    _player.dispose();
+  Future<bool> openExternal(Uri uri) {
+    return launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }

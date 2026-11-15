@@ -96,12 +96,14 @@ class _SearchBackgroundState extends State<_SearchBackground>
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _searchResults = [];
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _searchResults = [];
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 

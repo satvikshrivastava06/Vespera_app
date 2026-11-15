@@ -60,21 +60,7 @@ class _NewsSectionState extends State<NewsSection> {
     } else if (widget.news != null && widget.news!.isNotEmpty) {
       displayNews = widget.news!;
     } else {
-      // Hardcoded fallback
-      displayNews = [
-        models.NewsItem(
-          title: 'Global Music Festival 2024: Dates Announced',
-          subtitle: 'Tickets go on sale this Friday...',
-          category: 'EVENT',
-          imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&q=80',
-        ),
-        models.NewsItem(
-          title: 'AI in Music: The Next Revolution in Audio',
-          subtitle: 'How creators are using machine...',
-          category: 'TECH',
-          imageUrl: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=300&q=80',
-        ),
-      ];
+      return const SizedBox.shrink();
     }
 
     return Column(

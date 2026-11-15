@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vespera/widgets/vespera_style.dart';
-import 'package:vespera/services/audio_service.dart';
+import 'package:vespera/services/playback_actions.dart';
+import 'package:vespera/widgets/playback_feedback.dart';
 
 enum CategoryStyle { standard, insetImage, newRelease }
 
@@ -23,14 +24,8 @@ class CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Robust internal fallbacks
-    final List<CategoryItem> displayItems = (items != null && items!.isNotEmpty)
-        ? items!
-        : [
-            CategoryItem(title: 'Deep House', image: 'https://picsum.photos/seed/${title}1/300/300'),
-            CategoryItem(title: 'Classic Mood', image: 'https://picsum.photos/seed/${title}2/300/300'),
-            CategoryItem(title: 'Studio', image: 'https://picsum.photos/seed/${title}3/300/300'),
-          ];
+    final List<CategoryItem> displayItems = items ?? const <CategoryItem>[];
+    if (displayItems.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,21 +70,10 @@ class CategorySection extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () {
-        final audioService = AudioPlayerService();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Playing: ${item.title}..."),
-            duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFFE052FF),
-          ),
-        );
-
-        if (item.searchQuery.isNotEmpty) {
-          audioService.playFromSearch(item.searchQuery, item.title);
-        } else if (item.audioId.isNotEmpty) {
-          audioService.playSong(item.audioId, item.title);
-        }
+      onTap: () async {
+        final ok = await playCategoryItem(item);
+        if (!context.mounted) return;
+        await showPlaybackResult(context, title: item.title, ok: ok);
       },
       child: NeumorphicContainer(
         width: cardWidth,
@@ -172,6 +156,10 @@ class CategoryItem {
   final String image;
   final String audioId;
   final String searchQuery;
+  final String streamUrl;
+  final String? jamendoShareUrl;
+  final int playableMs;
+  final bool sessionEligible;
 
   const CategoryItem({
     required this.title,
@@ -179,5 +167,9 @@ class CategoryItem {
     required this.image,
     this.audioId = '',
     this.searchQuery = '',
+    this.streamUrl = '',
+    this.jamendoShareUrl,
+    this.playableMs = 0,
+    this.sessionEligible = false,
   });
 }

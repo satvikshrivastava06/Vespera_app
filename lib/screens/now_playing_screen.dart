@@ -1,27 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:vespera/services/api_service.dart';
+import 'package:vespera/models/playable_track.dart';
+import 'package:vespera/services/audio_service.dart';
 
 enum PlayerUIStyle { darkGlass, lightNeumorphic }
 
 class NowPlayingScreen extends StatefulWidget {
-  final String title;
-  final String artist;
-  final String? appleMusicUrl;
-  final String? spotifyTrackId;
-  final String? youtubeVideoId;
-
-  const NowPlayingScreen({
-    super.key,
-    this.title = 'Attention',
-    this.artist = 'Charlie Puth',
-    this.appleMusicUrl,
-    this.spotifyTrackId,
-    this.youtubeVideoId,
-  });
+  const NowPlayingScreen({super.key});
 
   // Design Constants - Light Theme Focus
   static const Color kPrimaryPurple = Color(0xFF863FF0);
@@ -38,7 +24,6 @@ class NowPlayingScreen extends StatefulWidget {
 }
 
 class _NowPlayingScreenState extends State<NowPlayingScreen> {
-  bool _isPlaying = true;
   bool _isLiked = true;
   bool _showLyrics = false;
   PlayerUIStyle _currentStyle = PlayerUIStyle.darkGlass;
@@ -58,89 +43,86 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     });
   }
 
-  Future<void> _handleOpenAppleMusic() async {
-    final url = widget.appleMusicUrl ??
-        'https://music.apple.com/search?term=${Uri.encodeComponent("${widget.title} ${widget.artist}")}';
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not launch Apple Music URL: $url');
-    }
-  }
-
-  Future<void> _handleOpenSpotify() async {
-    if (widget.spotifyTrackId != null && widget.spotifyTrackId!.isNotEmpty) {
-      await ApiService.openInSpotify(widget.spotifyTrackId!);
-    } else {
-      final uri = Uri.parse(
-          'https://open.spotify.com/search/${Uri.encodeComponent("${widget.title} ${widget.artist}")}');
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Future<void> _handleOpenYouTubeMusic() async {
-    if (widget.youtubeVideoId != null && widget.youtubeVideoId!.isNotEmpty) {
-      await ApiService.openInYouTubeMusic(widget.youtubeVideoId!);
-    } else {
-      final uri = Uri.parse(
-          'https://music.youtube.com/search?q=${Uri.encodeComponent("${widget.title} ${widget.artist}")}');
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _openHandoff(BuildContext context, Uri uri) async {
+    final ok = await AudioPlayerService().openExternal(uri);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't open that link")),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: NowPlayingScreen.kLightBackground,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 1. Light-Themed Atmospheric Background
-          const _AmbientAtmosphere(),
-
-          // 2. Main UI Layer (Toggle between Player and Lyrics)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-                child: child,
-              );
-            },
-            child: _showLyrics 
-              ? _LyricsView(
-                  isPlaying: _isPlaying,
-                  onTogglePlay: () => setState(() => _isPlaying = !_isPlaying),
-                  onBack: () => setState(() => _showLyrics = false),
-                  currentStyle: _currentStyle,
-                )
-              : _currentStyle == PlayerUIStyle.darkGlass
-                ? _DarkGlassView(
-                    isPlaying: _isPlaying,
-                    isLiked: _isLiked,
-                    onTogglePlay: () => setState(() => _isPlaying = !_isPlaying),
-                    onToggleLike: () => setState(() => _isLiked = !_isLiked),
-                    onShowLyrics: () => setState(() => _showLyrics = true),
-                    onToggleStyle: _toggleStyle,
-                    onOpenAppleMusic: _handleOpenAppleMusic,
-                    onOpenSpotify: _handleOpenSpotify,
-                    onOpenYouTubeMusic: _handleOpenYouTubeMusic,
-                  )
-                : _LightNeumorphicView(
-                    isPlaying: _isPlaying,
-                    isLiked: _isLiked,
-                    isControlBarTransparent: _isControlBarTransparent,
-                    onTogglePlay: () => setState(() => _isPlaying = !_isPlaying),
-                    onToggleLike: () => setState(() => _isLiked = !_isLiked),
-                    onShowLyrics: () => setState(() => _showLyrics = true),
-                    onToggleStyle: _toggleStyle,
-                    onToggleTransparency: _toggleControlBarTransparency,
-                  ),
+    return ListenableBuilder(
+      listenable: AudioPlayerService(),
+      builder: (context, _) {
+        final audio = AudioPlayerService();
+        return Scaffold(
+          backgroundColor: NowPlayingScreen.kLightBackground,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              const _AmbientAtmosphere(),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+                    child: child,
+                  );
+                },
+                child: _showLyrics
+                  ? _LyricsView(
+                      isPlaying: audio.isPlaying,
+                      title: audio.currentTitle ?? 'Nothing playing',
+                      artist: audio.currentArtist ?? '',
+                      onTogglePlay: () =>
+                          audio.isPlaying ? audio.pause() : audio.resume(),
+                      onSkipNext: () { audio.next(); },
+                      onSkipPrevious: () { audio.previous(); },
+                      onBack: () => setState(() => _showLyrics = false),
+                      currentStyle: _currentStyle,
+                    )
+                  : _currentStyle == PlayerUIStyle.darkGlass
+                    ? _DarkGlassView(
+                        isPlaying: audio.isPlaying,
+                        isLiked: _isLiked,
+                        title: audio.currentTitle ?? 'Nothing playing',
+                        artist: audio.currentArtist ?? '',
+                        links: audio.currentHandoffLinks,
+                        onTogglePlay: () {
+                          if (audio.currentTrack == null) return;
+                          audio.isPlaying ? audio.pause() : audio.resume();
+                        },
+                        onSkipNext: () { audio.next(); },
+                        onSkipPrevious: () { audio.previous(); },
+                        onToggleLike: () => setState(() => _isLiked = !_isLiked),
+                        onShowLyrics: () => setState(() => _showLyrics = true),
+                        onToggleStyle: _toggleStyle,
+                        onOpenLink: (uri) => _openHandoff(context, uri),
+                      )
+                    : _LightNeumorphicView(
+                        isPlaying: audio.isPlaying,
+                        isLiked: _isLiked,
+                        isControlBarTransparent: _isControlBarTransparent,
+                        onTogglePlay: () {
+                          if (audio.currentTrack == null) return;
+                          audio.isPlaying ? audio.pause() : audio.resume();
+                        },
+                        onToggleLike: () => setState(() => _isLiked = !_isLiked),
+                        onShowLyrics: () => setState(() => _showLyrics = true),
+                        onToggleStyle: _toggleStyle,
+                        onToggleTransparency: _toggleControlBarTransparency,
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -149,24 +131,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
 class _DarkGlassView extends StatelessWidget {
   final bool isPlaying;
   final bool isLiked;
+  final String title;
+  final String artist;
+  final List<HandoffLink> links;
   final VoidCallback onTogglePlay;
+  final VoidCallback onSkipNext;
+  final VoidCallback onSkipPrevious;
   final VoidCallback onToggleLike;
   final VoidCallback onShowLyrics;
   final VoidCallback onToggleStyle;
-  final VoidCallback onOpenAppleMusic;
-  final VoidCallback onOpenSpotify;
-  final VoidCallback onOpenYouTubeMusic;
+  final Future<void> Function(Uri uri) onOpenLink;
 
   const _DarkGlassView({
     required this.isPlaying,
     required this.isLiked,
+    required this.title,
+    required this.artist,
+    required this.links,
     required this.onTogglePlay,
+    required this.onSkipNext,
+    required this.onSkipPrevious,
     required this.onToggleLike,
     required this.onShowLyrics,
     required this.onToggleStyle,
-    required this.onOpenAppleMusic,
-    required this.onOpenSpotify,
-    required this.onOpenYouTubeMusic,
+    required this.onOpenLink,
   });
 
   @override
@@ -214,6 +202,8 @@ class _DarkGlassView extends StatelessWidget {
 
           // Track Metadata
           _TrackMetaRow(
+            title: title,
+            artist: artist,
             isLiked: isLiked,
             onLike: onToggleLike,
           ),
@@ -229,14 +219,15 @@ class _DarkGlassView extends StatelessWidget {
           _PlaybackControlRow(
             isPlaying: isPlaying,
             onToggle: onTogglePlay,
+            onSkipNext: onSkipNext,
+            onSkipPrevious: onSkipPrevious,
           ),
 
           const SizedBox(height: 20),
 
           _ListenElsewhereRow(
-            onOpenAppleMusic: onOpenAppleMusic,
-            onOpenSpotify: onOpenSpotify,
-            onOpenYouTubeMusic: onOpenYouTubeMusic,
+            links: links,
+            onOpenLink: onOpenLink,
           ),
 
           const Spacer(flex: 4),
@@ -253,26 +244,38 @@ class _DarkGlassView extends StatelessWidget {
 }
 
 class _ListenElsewhereRow extends StatelessWidget {
-  final VoidCallback onOpenAppleMusic;
-  final VoidCallback onOpenSpotify;
-  final VoidCallback onOpenYouTubeMusic;
+  final List<HandoffLink> links;
+  final Future<void> Function(Uri uri) onOpenLink;
 
   const _ListenElsewhereRow({
-    required this.onOpenAppleMusic,
-    required this.onOpenSpotify,
-    required this.onOpenYouTubeMusic,
+    required this.links,
+    required this.onOpenLink,
   });
+
+  IconData _iconFor(HandoffKind kind) {
+    switch (kind) {
+      case HandoffKind.jamendo:
+        return Icons.music_note_rounded;
+      case HandoffKind.apple:
+        return Icons.apple;
+      case HandoffKind.spotify:
+        return Icons.library_music_rounded;
+      case HandoffKind.youtube:
+        return Icons.play_circle_outline_rounded;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (links.isEmpty) return const SizedBox.shrink();
+    final primary = links.first;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Required badge — this preview is playing via the iTunes Search API
           GestureDetector(
-            onTap: onOpenAppleMusic,
+            onTap: () => onOpenLink(primary.uri),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: BackdropFilter(
@@ -286,11 +289,15 @@ class _ListenElsewhereRow extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(FontAwesomeIcons.apple, color: Colors.white, size: 16),
+                      Icon(_iconFor(primary.kind), color: Colors.white, size: 16),
                       const SizedBox(width: 6),
                       Text(
-                        'Listen on Apple Music',
-                        style: GoogleFonts.montserrat(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                        primary.label,
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -298,10 +305,14 @@ class _ListenElsewhereRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 14),
-          _NeumorphicGlassButton(icon: FontAwesomeIcons.spotify, onTap: onOpenSpotify, size: 44),
-          const SizedBox(width: 10),
-          _NeumorphicGlassButton(icon: FontAwesomeIcons.youtube, onTap: onOpenYouTubeMusic, size: 44),
+          for (final link in links.skip(1)) ...[
+            const SizedBox(width: 12),
+            _NeumorphicGlassButton(
+              icon: _iconFor(link.kind),
+              onTap: () => onOpenLink(link.uri),
+              size: 44,
+            ),
+          ],
         ],
       ),
     );
@@ -311,13 +322,21 @@ class _ListenElsewhereRow extends StatelessWidget {
 // --- Lyrics View (Cloned from player lyrics interface.png) ---
 class _LyricsView extends StatelessWidget {
   final bool isPlaying;
+  final String title;
+  final String artist;
   final VoidCallback onTogglePlay;
+  final VoidCallback onSkipNext;
+  final VoidCallback onSkipPrevious;
   final VoidCallback onBack;
   final PlayerUIStyle currentStyle;
 
   const _LyricsView({
     required this.isPlaying,
+    required this.title,
+    required this.artist,
     required this.onTogglePlay,
+    required this.onSkipNext,
+    required this.onSkipPrevious,
     required this.onBack,
     required this.currentStyle,
   });
@@ -381,7 +400,12 @@ class _LyricsView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Song Info Row
-                  _TrackMetaRow(isLiked: true, onLike: () {}),
+                  _TrackMetaRow(
+                    title: title,
+                    artist: artist,
+                    isLiked: true,
+                    onLike: () {},
+                  ),
                   const SizedBox(height: 24),
                   
                   // Waveform Progress
@@ -389,7 +413,12 @@ class _LyricsView extends StatelessWidget {
                   const SizedBox(height: 32),
                   
                   // Controls
-                  _PlaybackControlRow(isPlaying: isPlaying, onToggle: onTogglePlay),
+                  _PlaybackControlRow(
+                    isPlaying: isPlaying,
+                    onToggle: onTogglePlay,
+                    onSkipNext: onSkipNext,
+                    onSkipPrevious: onSkipPrevious,
+                  ),
                   
                   const SizedBox(height: 16),
                   
@@ -500,10 +529,17 @@ class _BeveledAlbumArt extends StatelessWidget {
 }
 
 class _TrackMetaRow extends StatelessWidget {
+  final String title;
+  final String artist;
   final bool isLiked;
   final VoidCallback onLike;
 
-  const _TrackMetaRow({required this.isLiked, required this.onLike});
+  const _TrackMetaRow({
+    required this.title,
+    required this.artist,
+    required this.isLiked,
+    required this.onLike,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -518,12 +554,14 @@ class _TrackMetaRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Attention',
+                  title,
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.montserrat(color: Colors.white, fontSize: 34, fontWeight: FontWeight.w800, letterSpacing: -1, shadows: NowPlayingScreen.kTextShadow),
                 ),
                 Text(
-                  'Charlie Puth',
+                  artist.isEmpty ? ' ' : artist,
                   style: GoogleFonts.montserrat(color: Colors.white.withOpacity(0.7), fontSize: 18, fontWeight: FontWeight.w500, shadows: NowPlayingScreen.kTextShadow),
                 ),
               ],
@@ -584,8 +622,15 @@ class _WaveformPainter extends CustomPainter {
 class _PlaybackControlRow extends StatelessWidget {
   final bool isPlaying;
   final VoidCallback onToggle;
+  final VoidCallback onSkipNext;
+  final VoidCallback onSkipPrevious;
 
-  const _PlaybackControlRow({required this.isPlaying, required this.onToggle});
+  const _PlaybackControlRow({
+    required this.isPlaying,
+    required this.onToggle,
+    required this.onSkipNext,
+    required this.onSkipPrevious,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -594,7 +639,7 @@ class _PlaybackControlRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _NeumorphicGlassButton(icon: Icons.skip_previous_rounded, onTap: () {}, size: 65),
+          _NeumorphicGlassButton(icon: Icons.skip_previous_rounded, onTap: onSkipPrevious, size: 65),
           GestureDetector(
             onTap: onToggle,
             child: Container(
@@ -603,7 +648,7 @@ class _PlaybackControlRow extends StatelessWidget {
               child: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 42),
             ),
           ),
-          _NeumorphicGlassButton(icon: Icons.skip_next_rounded, onTap: () {}, size: 65),
+          _NeumorphicGlassButton(icon: Icons.skip_next_rounded, onTap: onSkipNext, size: 65),
         ],
       ),
     );

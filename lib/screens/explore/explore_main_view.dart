@@ -6,6 +6,7 @@ import 'package:vespera/widgets/floating_bottom_nav.dart';
 import 'package:vespera/services/api_service.dart';
 import 'package:vespera/services/audio_service.dart';
 import 'package:vespera/models/home_feed.dart';
+import 'package:vespera/widgets/playback_feedback.dart';
 
 class ExploreMainView extends StatefulWidget {
   final VoidCallback onSwitchView;
@@ -44,7 +45,11 @@ class _ExploreMainViewState extends State<ExploreMainView> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 
@@ -140,11 +145,13 @@ class _ExploreMainViewState extends State<ExploreMainView> {
           if (_isLoading) return _buildShimmerEvent();
           final event = _events[index];
           return GestureDetector(
-            onTap: () {
-               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Playing Live Event: ${event.title}")),
+            onTap: () async {
+              final ok = await _audioService.playFromSearch(
+                event.searchQuery,
+                event.title,
               );
-              _audioService.playFromSearch(event.searchQuery, event.title);
+              if (!context.mounted) return;
+              await showPlaybackResult(context, title: event.title, ok: ok);
             },
             child: SizedBox(
               width: 72,
@@ -330,7 +337,14 @@ class SliverColumn extends StatelessWidget {
           return Padding(
             padding: EdgeInsets.only(bottom: gap),
             child: GestureDetector(
-              onTap: () => audioService.playFromSearch(item.searchQuery, item.title),
+              onTap: () async {
+                final ok = await audioService.playFromSearch(
+                  item.searchQuery,
+                  item.title,
+                );
+                if (!context.mounted) return;
+                await showPlaybackResult(context, title: item.title, ok: ok);
+              },
               child: Container(
                 width: colWidth,
                 height: colWidth * (isLong ? 1.4 : 0.9),

@@ -1,0 +1,26 @@
+# Render.com deployment config (VSP-013)
+# Free-tier web service: spins down after inactivity (~50s cold start).
+# Set env vars in the Render dashboard — NEVER commit real secrets.
+
+services:
+  - type: web
+    name: vespera-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python -m alembic upgrade head
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # set in Render dashboard (postgresql+asyncpg://...)
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant
+      - key: JAMENDO_CLIENT_ID
+        sync: false
+      - key: JAMENDO_TERMS_CONFIRMED_ON
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false          # e.g. https://your-app.web.app,http://localhost:8080
+      - key: RELOAD
+        value: "false"
+    healthCheckPath: /health

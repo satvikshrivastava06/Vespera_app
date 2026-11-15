@@ -19,13 +19,8 @@ class BulgedCategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<CategoryItem> displayItems = (items != null && items!.isNotEmpty)
-        ? items!
-        : [
-            CategoryItem(title: 'Vaporwave', image: 'https://picsum.photos/seed/${title}1/300/300'),
-            CategoryItem(title: 'Neon Nights', image: 'https://picsum.photos/seed/${title}2/300/300'),
-            CategoryItem(title: 'Pop Retro', image: 'https://picsum.photos/seed/${title}3/300/300'),
-          ];
+    final List<CategoryItem> displayItems = items ?? const <CategoryItem>[];
+    if (displayItems.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

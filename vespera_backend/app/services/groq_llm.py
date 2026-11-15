@@ -8,27 +8,28 @@ try:
 except Exception:
     client = None
 
-def generate_contextual_vibe(local_time: str, weather: str, location: str, activity_bpm: int) -> dict:
+def generate_contextual_vibe(local_time: str, weather: str, location: str = "", activity_bpm: int = 70) -> dict:
     """
-    Uses the Groq LLM to act as the AI DJ. 
-    It analyzes context and returns a JSON payload with a greeting and target music genres.
+    Uses the Groq LLM to act as the AI DJ.
+    Location is optional and must not include precise coordinates.
     """
+    location_line = f"- Coarse location: {location}\n" if location.strip() else ""
     prompt = f"""
-    You are 'Vespera', an advanced, emotionally intelligent AI Music DJ. 
+    You are 'Vespera', an advanced, emotionally intelligent AI Music DJ.
     Analyze the user's current context:
     - Time: {local_time}
     - Weather: {weather}
-    - Location: {location}
-    - User Activity: {activity_bpm} BPM (If > 100, they are exercising/running. If < 60, they are resting).
+    {location_line}- User Activity: {activity_bpm} BPM (If > 100, they are exercising/running. If < 60, they are resting).
 
     Based on this, determine the perfect musical vibe.
     Return ONLY a valid JSON object with the following structure:
     {{
-        "greeting": "A short, cool UI greeting like 'Late night in Jabalpur' or 'Rainy Morning Focus'",
+        "greeting": "A short UI greeting like 'Rainy Morning Focus'",
         "dj_message": "A 1-sentence friendly message explaining why you chose this vibe.",
-        "search_query": "3-4 keywords to search in our Vector Database (e.g., 'high energy cyberpunk synthwave', 'lofi acoustic acoustic chuva')",
+        "search_query": "3-4 keywords to search in our Vector Database (e.g., 'high energy cyberpunk synthwave', 'lofi acoustic')",
         "target_bpm": 100
     }}
+    Do not invent a city or precise location.
     """
 
     if not client:
@@ -37,7 +38,7 @@ def generate_contextual_vibe(local_time: str, weather: str, location: str, activ
     try:
         response = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama3-8b-8192",
+            model=settings.GROQ_MODEL,
             temperature=0.7,
             response_format={"type": "json_object"} 
         )

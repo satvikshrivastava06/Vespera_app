@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from typing import List, Optional
+
+from pydantic import BaseModel
+
 
 class PlaylistItem(BaseModel):
     title: str
@@ -8,16 +10,25 @@ class PlaylistItem(BaseModel):
     search_query: str = ""
     audio_id: Optional[str] = None
 
+
 class UserRanking(BaseModel):
     name: str
     rank: int
     image_url: str
+
 
 class NewsItem(BaseModel):
     category: str
     title: str
     subtitle: str
     image_url: str
+
+
+class ExploreFeedResponse(BaseModel):
+    trending_events: List[PlaylistItem]
+    personalized_mixes: List[PlaylistItem]
+    categories: List[str]
+
 
 class HomeFeedResponse(BaseModel):
     greeting: str

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vespera/widgets/vespera_style.dart';
 import 'package:vespera/widgets/category_section.dart';
-import 'package:vespera/services/audio_service.dart';
+import 'package:vespera/services/playback_actions.dart';
+import 'package:vespera/widgets/playback_feedback.dart';
 
 class BulgedCard extends StatelessWidget {
   final CategoryItem item;
@@ -21,21 +22,10 @@ class BulgedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        final audioService = AudioPlayerService();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Playing: ${item.title}..."),
-            duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFFE052FF),
-          ),
-        );
-
-        if (item.searchQuery.isNotEmpty) {
-          audioService.playFromSearch(item.searchQuery, item.title);
-        } else if (item.audioId.isNotEmpty) {
-          audioService.playSong(item.audioId, item.title);
-        }
+      onTap: () async {
+        final ok = await playCategoryItem(item);
+        if (!context.mounted) return;
+        await showPlaybackResult(context, title: item.title, ok: ok);
       },
       child: isHorizontal ? _buildHorizontalCard() : _buildVerticalCard(),
     );

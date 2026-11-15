@@ -4,8 +4,15 @@ groq
 pydantic
 pydantic-settings
 python-dotenv
+pytest
+pytest-asyncio
+httpx
 youtube-search-python
 ytmusicapi
 spotipy
 pinecone-client
-httpx
+# VSP-007: async DB stack
+sqlalchemy[asyncio]
+alembic
+asyncpg
+aiosqlite

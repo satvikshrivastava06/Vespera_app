@@ -9,11 +9,9 @@ import 'package:vespera/widgets/custom_bottom_nav.dart';
 import 'package:vespera/widgets/vespera_style.dart';
 import 'package:vespera/widgets/custom_drawer.dart';
 
+import 'package:vespera/models/catalog_track.dart';
 import 'package:vespera/models/home_feed.dart';
 import 'package:vespera/services/api_service.dart';
-import 'package:vespera/services/music_service.dart';
-import 'package:vespera/services/ai_voice_service.dart';
-import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,10 +22,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
-  final MusicService _musicService = MusicService();
-  final AiVoiceService _aiVoiceService = AiVoiceService();
 
   HomeFeedResponse? _homeData;
+  List<CatalogTrack> _catalog = const [];
 
   @override
   void initState() {
@@ -36,75 +33,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadHomeData() async {
-    // Note: We don't block the screen with _isLoading anymore to ensure fallbacks are always visible.
+    HomeFeedResponse? feed;
+    List<CatalogTrack> catalog = const [];
+    Object? feedError;
     try {
-      String locationString = "Bhopal, India";
-      try {
-        // Location check with 3s timeout
-        Position position = await _determinePosition().timeout(const Duration(seconds: 3));
-        locationString = "${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)}";
-      } catch (e) {
-        print("Location error or timeout (using fallback): $e");
-      }
-
-      final data = await _apiService.fetchHomeFeed(
-        location: locationString,
-        activityBpm: 70,
-      );
-
-      if (mounted) {
-        setState(() {
-          _homeData = data;
-        });
-        
-        // AI Voice Activation
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted && _homeData != null && _homeData!.aiMessage.isNotEmpty) {
-            _aiVoiceService.speak(_homeData!.aiMessage);
-          }
-        });
-      }
+      feed = await _apiService.fetchHomeFeed(activityBpm: 70);
     } catch (e) {
-      print("Error loading home data: $e");
+      feedError = e;
     }
-  }
-
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
+    try {
+      catalog = await _apiService.fetchCatalog();
+    } catch (_) {
+      catalog = const [];
     }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
-      }
+    if (!mounted) return;
+    setState(() {
+      _homeData = feed;
+      _catalog = catalog;
+    });
+    if (feedError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(feedError.toString())),
+      );
     }
-    
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied.');
-    } 
-
-    return await Geolocator.getCurrentPosition();
-  }
-
-  @override
-  void dispose() {
-    _musicService.dispose();
-    _aiVoiceService.stop();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Note: We no longer block the whole screen with _isLoading.
-    // This ensures fallbacks are visible immediately.
-
     return Scaffold(
       backgroundColor: VesperaStyle.background,
       drawer: const CustomDrawer(),
@@ -146,6 +101,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
+
+                    if (_catalog.isNotEmpty) ...[
+                      CategorySection(
+                        title: 'Rights-cleared catalog',
+                        style: CategoryStyle.standard,
+                        cardWidth: 140,
+                        cardHeight: 220,
+                        items: _catalog
+                            .map(
+                              (track) => CategoryItem(
+                                title: track.title,
+                                subtitle: track.artist,
+                                image: track.imageUrl ?? '',
+                                audioId: track.id,
+                                streamUrl: track.audioUrl ?? '',
+                                jamendoShareUrl: track.jamendoShareUrl,
+                                playableMs: track.playableMs,
+                                sessionEligible: track.sessionEligible,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: 35),
+                    ],
 
                     // 1. Monthly Ranking
                     RankingSection(rankings: _homeData?.rankings),

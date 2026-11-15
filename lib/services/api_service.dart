@@ -1,8 +1,16 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:vespera/models/catalog_track.dart';
 import 'package:vespera/models/home_feed.dart';
+import 'package:vespera/services/auth_service.dart';
+
+class ApiException implements Exception {
+  final String message;
+  const ApiException(this.message);
+  @override
+  String toString() => message;
+}
 
 class ApiService {
   // Set at build time with:
@@ -12,101 +20,116 @@ class ApiService {
     defaultValue: 'http://localhost:8000/api/v1',
   );
 
-  /// Opens a Spotify track in the Spotify app, falling back to the web player.
-  static Future<void> openInSpotify(String spotifyTrackId) async {
-    final appUri = Uri.parse('spotify:track:$spotifyTrackId');
-    final webUri =
-        Uri.parse('https://open.spotify.com/track/$spotifyTrackId');
-    if (!await launchUrl(appUri)) {
-      await launchUrl(webUri, mode: LaunchMode.externalApplication);
+  final AuthService _auth;
+
+  ApiService({AuthService? auth}) : _auth = auth ?? AuthService();
+
+  // ---------------------------------------------------------------------------
+  // Internal helpers
+  // ---------------------------------------------------------------------------
+
+  /// Returns the common headers for every authenticated request.
+  /// The device token is attached as X-Device-Token; it is never placed in
+  /// the URL or logged.
+  Future<Map<String, String>> _authHeaders([
+    Map<String, String>? extra,
+  ]) async {
+    final token = await _auth.token;
+    final headers = <String, String>{
+      ...?extra,
+    };
+    if (token != null) {
+      headers['X-Device-Token'] = token;
     }
+    return headers;
   }
 
-  /// Opens a YouTube Music track by video ID.
-  static Future<void> openInYouTubeMusic(String videoId) async {
-    final uri = Uri.parse('https://music.youtube.com/watch?v=$videoId');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
+  // ---------------------------------------------------------------------------
+  // Existing endpoints — now carry the device token
+  // ---------------------------------------------------------------------------
 
   Future<HomeFeedResponse> fetchHomeFeed({
     String localTime = '',
     String weather = 'Clear',
-    String location = 'Jabalpur, India',
+    String location = '',
     int activityBpm = 70,
   }) async {
     final url = Uri.parse('$_baseUrl/home_feed');
-    
     try {
-      final response = await http.get(url, headers: {
+      final headers = await _authHeaders({
         'local-time': localTime.isEmpty ? DateTime.now().toIso8601String() : localTime,
         'weather': weather,
         'location': location,
         'activity-bpm': activityBpm.toString(),
       });
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 60));
 
-      if (response.statusCode == 200) {
-        return HomeFeedResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load home feed: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        throw ApiException('Home feed failed (HTTP ${response.statusCode})');
       }
-    } catch (e) {
-      print('Error fetching home feed: $e');
-      return _getFallbackData();
+      return HomeFeedResponse.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Could not reach the server');
     }
   }
 
   Future<ExploreFeedResponse> fetchExploreFeed() async {
     final url = Uri.parse('$_baseUrl/explore_feed');
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return ExploreFeedResponse.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to load explore feed: ${response.statusCode}');
+      final headers = await _authHeaders();
+      final response =
+          await http.get(url, headers: headers).timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) {
+        throw ApiException('Explore feed failed (HTTP ${response.statusCode})');
       }
-    } catch (e) {
-      print('Error fetching explore feed: $e');
-      // High-fidelity local fallback
-      return ExploreFeedResponse(
-        trendingEvents: [],
-        personalizedMixes: [],
-        categories: ['All', 'Rock', 'Hip-Hop', 'Pop', 'Jazz'],
-      );
+      return ExploreFeedResponse.fromJson(json.decode(response.body));
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Could not reach the server');
+    }
+  }
+
+  Future<List<CatalogTrack>> fetchCatalog() async {
+    final url = Uri.parse('$_baseUrl/catalog');
+    try {
+      final headers = await _authHeaders();
+      final response =
+          await http.get(url, headers: headers).timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) {
+        throw ApiException('Catalog failed (HTTP ${response.statusCode})');
+      }
+      final List<dynamic> data = json.decode(response.body) as List<dynamic>;
+      return data
+          .map((row) => CatalogTrack.fromJson(row as Map<String, dynamic>))
+          .toList();
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Could not reach the server');
     }
   }
 
   Future<List<PlaylistItem>> search(String query, {String type = "all"}) async {
-    final url = Uri.parse('$_baseUrl/search?query=${Uri.encodeComponent(query)}&search_type=$type');
+    final url = Uri.parse(
+        '$_baseUrl/search?query=${Uri.encodeComponent(query)}&search_type=$type');
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => PlaylistItem.fromJson(json)).toList();
+      final headers = await _authHeaders();
+      final response =
+          await http.get(url, headers: headers).timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) {
+        throw ApiException('Search failed (HTTP ${response.statusCode})');
       }
-      return [];
-    } catch (e) {
-      print('Error searching: $e');
-      return [];
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => PlaylistItem.fromJson(json)).toList();
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('Could not reach the server');
     }
-  }
-
-  HomeFeedResponse _getFallbackData() {
-    return HomeFeedResponse(
-      greeting: "Welcome to Vespera",
-      aiMessage: "Curating your personal soundscape...",
-      rankings: [], // No leaderboard system exists yet — hide rather than fabricate
-      popularPlaylists: [
-        PlaylistItem(title: "Neon Nights", subtitle: "Cyberpunk Vibe", imageUrl: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853", audioId: "tV_vIdS5X-M", searchQuery: "Cyberpunk music mix"),
-        PlaylistItem(title: "Classic Mood", subtitle: "Curated for you", imageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea", audioId: "jfKfPfyJRdk", searchQuery: "Classic jazz mix"),
-      ],
-      jumpBackIn: [
-        PlaylistItem(title: "Deep House", subtitle: "Trending", imageUrl: "https://images.unsplash.com/photo-1557672172-298e090bd0f1", audioId: "L_XJ_sCD7GV", searchQuery: "Deep house 2026"),
-        PlaylistItem(title: "Twilight Audio", subtitle: "Spatial Mix", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401", audioId: "tV_vIdS5X-M", searchQuery: "Twilight cinematic music"),
-      ],
-      quickPicks: [],
-      trendingNow: [],
-      newReleases: [],
-      news: [],
-    );
   }
 }
