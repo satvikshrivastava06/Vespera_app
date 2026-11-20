@@ -1,0 +1,130 @@
+﻿[
+    {
+        "id":  "jamendo:2025504",
+        "title":  "...And the Sun Smiled at the Horizon, Bringing Us Joy!",
+        "artist":  "Tonepoet",
+        "image_url":  "https://usercontent.jamendo.com?type=album\u0026id=518183\u0026width=300\u0026trackid=2025504",
+        "tags":  [
+                     "ambient",
+                     "peaceful",
+                     "calm",
+                     "acoustic"
+                 ],
+        "instrumental_label":  "labelled instrumental by Jamendo",
+        "duration_ms":  355000,
+        "provider_track":  {
+                               "provider":  "jamendo",
+                               "provider_track_id":  "2025504",
+                               "playback_mode":  "full_licensed",
+                               "audio_url":  "https://prod-1.storage.jamendo.com/?trackid=2025504\u0026format=mp32\u0026from=XwnR1A0vq%2FPIDO%2BtUD9omA%3D%3D%7CIFlcTnVxtTv%2BOGBvoScJrQ%3D%3D",
+                               "deep_link":  "https://www.jamendo.com/track/2025504",
+                               "playable_ms":  355000,
+                               "preview_asset_ms":  0,
+                               "session_eligible":  true,
+                               "rights_record_id":  1,
+                               "license":  "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+                               "verified_at":  "2026-11-20T13:02:59.230559Z"
+                           },
+        "rights":  {
+                       "id":  1,
+                       "source":  "jamendo",
+                       "policy_version":  "m1-jamendo-v1",
+                       "license_code":  "by-nc-sa",
+                       "license_url":  "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+                       "session_eligible":  true,
+                       "reasons":  [
+
+                                   ],
+                       "attribution_url":  "https://www.jamendo.com/track/2025504",
+                       "cache_offline_allowed":  false,
+                       "terms_confirmed_on":  "2026-11-20T00:00:00Z",
+                       "decided_at":  "2026-11-20T13:02:59.230556Z"
+                   }
+    },
+    {
+        "id":  "jamendo:2139658",
+        "title":  "Organic Reflections",
+        "artist":  "DHDMusic",
+        "image_url":  "https://usercontent.jamendo.com?type=album\u0026id=552615\u0026width=300\u0026trackid=2139658",
+        "tags":  [
+                     "electronic",
+                     "synthesizer",
+                     "soft",
+                     "peaceful",
+                     "calm"
+                 ],
+        "instrumental_label":  "labelled instrumental by Jamendo",
+        "duration_ms":  143000,
+        "provider_track":  {
+                               "provider":  "jamendo",
+                               "provider_track_id":  "2139658",
+                               "playback_mode":  "full_licensed",
+                               "audio_url":  "https://prod-1.storage.jamendo.com/?trackid=2139658\u0026format=mp32\u0026from=wDuSQn7MfGthOy59B1wo5g%3D%3D%7CcxJPit7g8BDOjaXOdN%2FFCg%3D%3D",
+                               "deep_link":  "https://www.jamendo.com/track/2139658",
+                               "playable_ms":  143000,
+                               "preview_asset_ms":  0,
+                               "session_eligible":  true,
+                               "rights_record_id":  2,
+                               "license":  "http://creativecommons.org/licenses/by-nc/3.0/",
+                               "verified_at":  "2026-11-20T13:02:59.230672Z"
+                           },
+        "rights":  {
+                       "id":  2,
+                       "source":  "jamendo",
+                       "policy_version":  "m1-jamendo-v1",
+                       "license_code":  "by-nc",
+                       "license_url":  "http://creativecommons.org/licenses/by-nc/3.0/",
+                       "session_eligible":  true,
+                       "reasons":  [
+
+                                   ],
+                       "attribution_url":  "https://www.jamendo.com/track/2139658",
+                       "cache_offline_allowed":  false,
+                       "terms_confirmed_on":  "2026-11-20T00:00:00Z",
+                       "decided_at":  "2026-11-20T13:02:59.230670Z"
+                   }
+    },
+    {
+        "id":  "jamendo:1967110",
+        "title":  "Valleys of Crystals",
+        "artist":  "Ancient Astronaut",
+        "image_url":  "https://usercontent.jamendo.com?type=album\u0026id=492737\u0026width=300\u0026trackid=1967110",
+        "tags":  [
+                     "ambient",
+                     "synthesizer",
+                     "soundscape",
+                     "peaceful",
+                     "calm"
+                 ],
+        "instrumental_label":  "labelled instrumental by Jamendo",
+        "duration_ms":  244000,
+        "provider_track":  {
+                               "provider":  "jamendo",
+                               "provider_track_id":  "1967110",
+                               "playback_mode":  "full_licensed",
+                               "audio_url":  "https://prod-1.storage.jamendo.com/?trackid=1967110\u0026format=mp32\u0026from=2YcIC42bnw2PfZscAICiVA%3D%3D%7CeBjehHRtEo3%2BvXEzoIEvHQ%3D%3D",
+                               "deep_link":  "https://www.jamendo.com/track/1967110",
+                               "playable_ms":  244000,
+                               "preview_asset_ms":  0,
+                               "session_eligible":  true,
+                               "rights_record_id":  3,
+                               "license":  "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+                               "verified_at":  "2026-11-20T13:02:59.230718Z"
+                           },
+        "rights":  {
+                       "id":  3,
+                       "source":  "jamendo",
+                       "policy_version":  "m1-jamendo-v1",
+                       "license_code":  "by-nc-sa",
+                       "license_url":  "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+                       "session_eligible":  true,
+                       "reasons":  [
+
+                                   ],
+                       "attribution_url":  "https://www.jamendo.com/track/1967110",
+                       "cache_offline_allowed":  false,
+                       "terms_confirmed_on":  "2026-11-20T00:00:00Z",
+                       "decided_at":  "2026-11-20T13:02:59.230717Z"
+                   }
+    }
+]

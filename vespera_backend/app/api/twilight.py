@@ -67,7 +67,13 @@ async def twilight_agent(
     device: DeviceToken = Depends(_require_device),
     db: AsyncSession = Depends(get_db),
 ) -> TwilightResponse:
-    await check_rate_limit(request, "twilight_agent", max_calls=20, window_seconds=60)
+    await check_rate_limit(
+        request, "twilight_agent", max_calls=20, window_seconds=60, key=device.user_id
+    )
+    # Global ceiling bounds LLM spend even if many tokens are minted.
+    await check_rate_limit(
+        request, "twilight_agent_global", max_calls=60, window_seconds=60, key="global"
+    )
     trace_id = str(uuid.uuid4())
     request_id = body.request_id or str(uuid.uuid4())
     text = body.text.strip()

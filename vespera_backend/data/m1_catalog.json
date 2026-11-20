@@ -1,5 +1,3168 @@
 {
-  "generated_at": null,
+  "generated_at": "2026-11-20T13:03:04.154591Z",
   "policy_version": "m1-jamendo-v1",
-  "tracks": []
+  "tracks": [
+    {
+      "id": "jamendo:2025504",
+      "title": "...And the Sun Smiled at the Horizon, Bringing Us Joy!",
+      "artist": "Tonepoet",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=518183&width=300&trackid=2025504",
+      "tags": [
+        "ambient",
+        "peaceful",
+        "calm",
+        "acoustic"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 355000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "2025504",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=2025504&format=mp32&from=XwnR1A0vq%2FPIDO%2BtUD9omA%3D%3D%7CIFlcTnVxtTv%2BOGBvoScJrQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/2025504",
+        "playable_ms": 355000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 1,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230559Z"
+      },
+      "rights": {
+        "id": 1,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/2025504",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230556Z"
+      }
+    },
+    {
+      "id": "jamendo:2139658",
+      "title": "Organic Reflections",
+      "artist": "DHDMusic",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=552615&width=300&trackid=2139658",
+      "tags": [
+        "electronic",
+        "synthesizer",
+        "soft",
+        "peaceful",
+        "calm"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 143000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "2139658",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=2139658&format=mp32&from=wDuSQn7MfGthOy59B1wo5g%3D%3D%7CcxJPit7g8BDOjaXOdN%2FFCg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/2139658",
+        "playable_ms": 143000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 2,
+        "license": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230672Z"
+      },
+      "rights": {
+        "id": 2,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc",
+        "license_url": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/2139658",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230670Z"
+      }
+    },
+    {
+      "id": "jamendo:1967110",
+      "title": "Valleys of Crystals",
+      "artist": "Ancient Astronaut",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=492737&width=300&trackid=1967110",
+      "tags": [
+        "ambient",
+        "synthesizer",
+        "soundscape",
+        "peaceful",
+        "calm"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 244000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1967110",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1967110&format=mp32&from=2YcIC42bnw2PfZscAICiVA%3D%3D%7CeBjehHRtEo3%2BvXEzoIEvHQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1967110",
+        "playable_ms": 244000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 3,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230718Z"
+      },
+      "rights": {
+        "id": 3,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1967110",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230717Z"
+      }
+    },
+    {
+      "id": "jamendo:711261",
+      "title": "Room Chase",
+      "artist": "Anitek",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=83048&width=300&trackid=711261",
+      "tags": [
+        "hiphop",
+        "lounge",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 172000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "711261",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=711261&format=mp32&from=E8FyQafVpusb3cL4VM02kg%3D%3D%7CxtygStgmntTAuU9qwJcF1Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/711261",
+        "playable_ms": 172000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 4,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230740Z"
+      },
+      "rights": {
+        "id": 4,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/711261",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230739Z"
+      }
+    },
+    {
+      "id": "jamendo:710712",
+      "title": "To The Light",
+      "artist": "Keffy Kay",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=82941&width=300&trackid=710712",
+      "tags": [
+        "newage",
+        "strings",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 209000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "710712",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=710712&format=mp32&from=s5m15Kal%2F2TOmLu9jN%2F6uA%3D%3D%7ChONvS0RPHfgD9TEMAaWOxA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/710712",
+        "playable_ms": 209000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 5,
+        "license": "http://creativecommons.org/licenses/by/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230778Z"
+      },
+      "rights": {
+        "id": 5,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by",
+        "license_url": "http://creativecommons.org/licenses/by/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/710712",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230776Z"
+      }
+    },
+    {
+      "id": "jamendo:127609",
+      "title": "Relax",
+      "artist": "Sole Symphony",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=18018&width=300&trackid=127609",
+      "tags": [
+        "ambient",
+        "synthesizer",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 175000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "127609",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=127609&format=mp32&from=XLMUiDRDLoXTwEjjTx5lgg%3D%3D%7CtJ1bYMuacclGttAJ83Q5Og%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/127609",
+        "playable_ms": 175000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 6,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230805Z"
+      },
+      "rights": {
+        "id": 6,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/127609",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230804Z"
+      }
+    },
+    {
+      "id": "jamendo:2259926",
+      "title": "Sketches on the Balcony - Lo-fi Hip Hop, Chillhop, Dreamy, Ambient, Instrumental",
+      "artist": "SyncForge Music",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=606164&width=300&trackid=2259926",
+      "tags": [
+        "downtempo",
+        "lofi",
+        "peaceful",
+        "calm"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 135000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "2259926",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=2259926&format=mp32&from=FaWjiSbBDAXseZOPkjnpvA%3D%3D%7C%2BisDz9Dc9%2F0ftDR%2F%2B1y06Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/2259926",
+        "playable_ms": 135000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 7,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230823Z"
+      },
+      "rights": {
+        "id": 7,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/2259926",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230822Z"
+      }
+    },
+    {
+      "id": "jamendo:687978",
+      "title": "Sweet moments",
+      "artist": "Starlaband",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=80108&width=300&trackid=687978",
+      "tags": [
+        "guitar",
+        "strings",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 279000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "687978",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=687978&format=mp32&from=cGI%2FhH7c%2ByFJZfOhAG6nKQ%3D%3D%7CFTIdVODyiMHVf%2Bwv95nvZA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/687978",
+        "playable_ms": 279000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 8,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230840Z"
+      },
+      "rights": {
+        "id": 8,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/687978",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230839Z"
+      }
+    },
+    {
+      "id": "jamendo:360208",
+      "title": "Out Of The Silence",
+      "artist": "Ken Verheecke",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=46729&width=300&trackid=360208",
+      "tags": [
+        "pop",
+        "guitar",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 217000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "360208",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=360208&format=mp32&from=CHzCS9YhnItXLnpLWVuXUQ%3D%3D%7Cyq9X7Ge1S9cPJPUwVz5y9Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/360208",
+        "playable_ms": 217000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 9,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230871Z"
+      },
+      "rights": {
+        "id": 9,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/360208",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230870Z"
+      }
+    },
+    {
+      "id": "jamendo:865767",
+      "title": "No one dies of love",
+      "artist": "Enzo Carlino",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=101446&width=300&trackid=865767",
+      "tags": [
+        "pop",
+        "peaceful",
+        "lounge",
+        "softrock"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 209000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "865767",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=865767&format=mp32&from=I%2BjFktnb36GEC09sRN7eaw%3D%3D%7Ci0PR9wWdNsDhwW2MAPlVOw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/865767",
+        "playable_ms": 209000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 10,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230891Z"
+      },
+      "rights": {
+        "id": 10,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/865767",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230890Z"
+      }
+    },
+    {
+      "id": "jamendo:223590",
+      "title": "Day Break",
+      "artist": "Emorej",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=32823&width=300&trackid=223590",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "uplifting"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 268000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "223590",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=223590&format=mp32&from=3oulm1hDwnHe3zXjZbAsKw%3D%3D%7CzQz28A3Xx4IElaKF7ob0sA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/223590",
+        "playable_ms": 268000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 11,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230910Z"
+      },
+      "rights": {
+        "id": 11,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/223590",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230909Z"
+      }
+    },
+    {
+      "id": "jamendo:396936",
+      "title": "Hollow City, Part 4",
+      "artist": "Project Divinity",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=49674&width=300&trackid=396936",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "happy"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 208000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "396936",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=396936&format=mp32&from=cVGHkga%2FUYkUcN4kHQ84Ew%3D%3D%7CPpxxdeONvR%2BHPwS1GUcgbQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/396936",
+        "playable_ms": 208000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 12,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230932Z"
+      },
+      "rights": {
+        "id": 12,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/396936",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230931Z"
+      }
+    },
+    {
+      "id": "jamendo:1439041",
+      "title": "Acalma minhas tempestades",
+      "artist": "Andr\u00e9 Furlan",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=362455&width=300&trackid=1439041",
+      "tags": [
+        "gospel",
+        "ambient",
+        "peaceful",
+        "calma"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 144000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1439041",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1439041&format=mp32&from=wzJar41tkPaWED35cLXWng%3D%3D%7C78ALbxEoUwqtntAf4u8bmQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1439041",
+        "playable_ms": 144000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 13,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:02:59.230974Z"
+      },
+      "rights": {
+        "id": 13,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1439041",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:02:59.230973Z"
+      }
+    },
+    {
+      "id": "jamendo:435945",
+      "title": "chai",
+      "artist": "Offenbach Project",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=52821&width=300&trackid=435945",
+      "tags": [
+        "pop",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 214000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "435945",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=435945&format=mp32&from=SmH6jBqAnnR%2BOnltxKAp3Q%3D%3D%7CT43oxEf5CnZZG5axPCO2HQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/435945",
+        "playable_ms": 214000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 14,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.038978Z"
+      },
+      "rights": {
+        "id": 14,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/435945",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.038974Z"
+      }
+    },
+    {
+      "id": "jamendo:171146",
+      "title": "Dolphins In My Bathroom",
+      "artist": "A.K.1974",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=25190&width=300&trackid=171146",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 279000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "171146",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=171146&format=mp32&from=lyk5zsoeHdvFxjqelfu3QA%3D%3D%7C5pNHfrw4schP1s7f3ibPgg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/171146",
+        "playable_ms": 279000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 15,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039152Z"
+      },
+      "rights": {
+        "id": 15,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/171146",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039148Z"
+      }
+    },
+    {
+      "id": "jamendo:306416",
+      "title": "cellophane",
+      "artist": "The Whisky project",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=41661&width=300&trackid=306416",
+      "tags": [
+        "idm",
+        "dance",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 273000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "306416",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=306416&format=mp32&from=CU2EvdAKWULeUosSw8JgEg%3D%3D%7C1Q%2B67eye23eVT2qC8uyMJQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/306416",
+        "playable_ms": 273000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 16,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039211Z"
+      },
+      "rights": {
+        "id": 16,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/306416",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039207Z"
+      }
+    },
+    {
+      "id": "jamendo:19873",
+      "title": "Mi primer y \u00faltimo reggaet\u00f3n",
+      "artist": "BrunoXe",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=2790&width=300&trackid=19873",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 106000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "19873",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=19873&format=mp32&from=X%2BTfMU2bkNpbfyBMGlYBuw%3D%3D%7CC4BnnDTAqqT6M6G9Wfmtew%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/19873",
+        "playable_ms": 106000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 17,
+        "license": "http://creativecommons.org/licenses/by/2.5/",
+        "verified_at": "2026-11-20T13:03:01.039269Z"
+      },
+      "rights": {
+        "id": 17,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by",
+        "license_url": "http://creativecommons.org/licenses/by/2.5/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/19873",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039266Z"
+      }
+    },
+    {
+      "id": "jamendo:275426",
+      "title": "Days Not Today",
+      "artist": "Brokenkites",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=38838&width=300&trackid=275426",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 307000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "275426",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=275426&format=mp32&from=tG8sYuyjKkXbdg7SgskEZQ%3D%3D%7C4HjG4C9ZKi9QGs2%2FkCfTXg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/275426",
+        "playable_ms": 307000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 18,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039313Z"
+      },
+      "rights": {
+        "id": 18,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/275426",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039310Z"
+      }
+    },
+    {
+      "id": "jamendo:509741",
+      "title": "Bloodsnow",
+      "artist": "Lupus",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=59676&width=300&trackid=509741",
+      "tags": [
+        "triphop",
+        "peaceful",
+        "sad"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 205000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "509741",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=509741&format=mp32&from=xf%2FrC4W4ubmWklrmUwDiCA%3D%3D%7C7zgazlh9u3F2i%2Fu0mcBmig%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/509741",
+        "playable_ms": 205000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 19,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039349Z"
+      },
+      "rights": {
+        "id": 19,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/509741",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039346Z"
+      }
+    },
+    {
+      "id": "jamendo:483987",
+      "title": "To Fly",
+      "artist": "M\u041eB",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=56997&width=300&trackid=483987",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 125000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "483987",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=483987&format=mp32&from=a6%2BRkEaSsoc3wGHNkEiHmA%3D%3D%7CcRsahGn%2FKpr3QmDQlFlvAw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/483987",
+        "playable_ms": 125000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 20,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039387Z"
+      },
+      "rights": {
+        "id": 20,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/483987",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039383Z"
+      }
+    },
+    {
+      "id": "jamendo:156204",
+      "title": "Beautiful You (Message in a Bottle)",
+      "artist": "Mark.Nine",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=22424&width=300&trackid=156204",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 350000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "156204",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=156204&format=mp32&from=93BjUHBRCsz7BFOkBiVl5w%3D%3D%7CMLyoEwxGBRPZHi0O5NBstg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/156204",
+        "playable_ms": 350000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 21,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039438Z"
+      },
+      "rights": {
+        "id": 21,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/156204",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039435Z"
+      }
+    },
+    {
+      "id": "jamendo:1465998",
+      "title": "Ascent",
+      "artist": "Thecora",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=282944&width=300&trackid=1465998",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 229000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1465998",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1465998&format=mp32&from=3VDTcZKEHpc95CI0Z3TR%2FA%3D%3D%7CiYTqRlYPPNHpPJ3JBXjPqw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1465998",
+        "playable_ms": 229000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 22,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039470Z"
+      },
+      "rights": {
+        "id": 22,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1465998",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039467Z"
+      }
+    },
+    {
+      "id": "jamendo:1293245",
+      "title": "river",
+      "artist": "roughcopies",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=213646&width=300&trackid=1293245",
+      "tags": [
+        "ambient",
+        "peaceful",
+        "river"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 251000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1293245",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1293245&format=mp32&from=Bm5LNvvlvYcl%2F8WuQ8h19Q%3D%3D%7CoRw5kO0zbq1TL8h032cF3Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1293245",
+        "playable_ms": 251000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 23,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039519Z"
+      },
+      "rights": {
+        "id": 23,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1293245",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039516Z"
+      }
+    },
+    {
+      "id": "jamendo:45883",
+      "title": "Emotion - Part3",
+      "artist": "e.z.Y",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=5508&width=300&trackid=45883",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 288000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "45883",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=45883&format=mp32&from=5txBj41c%2BszBzfsDV%2B84pA%3D%3D%7CzVizVKWPKrC5SH1%2FPA1uQQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/45883",
+        "playable_ms": 288000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 24,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039573Z"
+      },
+      "rights": {
+        "id": 24,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/45883",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039570Z"
+      }
+    },
+    {
+      "id": "jamendo:450049",
+      "title": "OutWorld - Stand Alone",
+      "artist": "PeerGynt Lobogris",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=53973&width=300&trackid=450049",
+      "tags": [
+        "pop",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 180000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "450049",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=450049&format=mp32&from=qu3llpp3X1CHzMLEyjtd0w%3D%3D%7COieO6T3c9wuw0%2Fdkubrk2Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/450049",
+        "playable_ms": 180000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 25,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039605Z"
+      },
+      "rights": {
+        "id": 25,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/450049",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039601Z"
+      }
+    },
+    {
+      "id": "jamendo:214621",
+      "title": "Partir",
+      "artist": "Pascal SER'JACOBS",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=31635&width=300&trackid=214621",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 344000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "214621",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=214621&format=mp32&from=xn%2FuZeCsJ5tvMpeStkzirw%3D%3D%7Cm2I3boydXUJbgK%2FV17yjiA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/214621",
+        "playable_ms": 344000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 26,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039642Z"
+      },
+      "rights": {
+        "id": 26,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/214621",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039638Z"
+      }
+    },
+    {
+      "id": "jamendo:1052197",
+      "title": "Summer Breeze",
+      "artist": "Whyman Productions",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=123909&width=300&trackid=1052197",
+      "tags": [
+        "synthesizer",
+        "electronicorgan",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 264000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1052197",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1052197&format=mp32&from=G61oHr%2FqJwQ2C6q9N9Tzkw%3D%3D%7CKPvf7lDnnSKbZQm9ZUIMPw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1052197",
+        "playable_ms": 264000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 27,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039678Z"
+      },
+      "rights": {
+        "id": 27,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1052197",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039674Z"
+      }
+    },
+    {
+      "id": "jamendo:1047421",
+      "title": "The Inside of Joe's Head",
+      "artist": "The Persephone",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=123432&width=300&trackid=1047421",
+      "tags": [
+        "bass",
+        "electricguitar",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 160000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1047421",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1047421&format=mp32&from=42PLN91lHiXum2Upq9GDAA%3D%3D%7C6kSyqnru%2FddQqUWzwwaLPA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1047421",
+        "playable_ms": 160000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 28,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039715Z"
+      },
+      "rights": {
+        "id": 28,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1047421",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039712Z"
+      }
+    },
+    {
+      "id": "jamendo:180883",
+      "title": "Under a starry sky",
+      "artist": "Parallel Dream",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=27052&width=300&trackid=180883",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 165000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "180883",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=180883&format=mp32&from=W5WIaFxFEf3%2BrlhPimf%2BxQ%3D%3D%7CrPsOYYHjMBxMsEh6tREVJw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/180883",
+        "playable_ms": 165000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 29,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039759Z"
+      },
+      "rights": {
+        "id": 29,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/180883",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039756Z"
+      }
+    },
+    {
+      "id": "jamendo:1160118",
+      "title": "Fly",
+      "artist": "Ostin",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=139308&width=300&trackid=1160118",
+      "tags": [
+        "electronic",
+        "drums",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 312000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1160118",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1160118&format=mp32&from=jJkWMeloX%2F6Zo1wDdtt0FQ%3D%3D%7C4%2FTbX9GPfUc0gKDAhnCUWw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1160118",
+        "playable_ms": 312000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 30,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039792Z"
+      },
+      "rights": {
+        "id": 30,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1160118",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039789Z"
+      }
+    },
+    {
+      "id": "jamendo:440767",
+      "title": "Underwater",
+      "artist": "No Hair On Head",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=53402&width=300&trackid=440767",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "christmas"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 238000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "440767",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=440767&format=mp32&from=JOTUUQgaW60CBaOYYMA0Sg%3D%3D%7Crnoqlb8DspT6%2BswEGdCQYA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/440767",
+        "playable_ms": 238000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 31,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039827Z"
+      },
+      "rights": {
+        "id": 31,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/440767",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039824Z"
+      }
+    },
+    {
+      "id": "jamendo:346494",
+      "title": "Wedding day",
+      "artist": "Lukas",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=45556&width=300&trackid=346494",
+      "tags": [
+        "rock",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 283000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "346494",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=346494&format=mp32&from=teIXsE3vCWCKU%2FnAzTxucA%3D%3D%7CJnDuQw4lgcGhAzGYnaJ2gw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/346494",
+        "playable_ms": 283000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 32,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039859Z"
+      },
+      "rights": {
+        "id": 32,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/346494",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039856Z"
+      }
+    },
+    {
+      "id": "jamendo:22830",
+      "title": "Bossarim Quatro",
+      "artist": "pharmacopia",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=3167&width=300&trackid=22830",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 289000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "22830",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=22830&format=mp32&from=7q8JPWayG2XOyzQfT8Jl0Q%3D%3D%7Ch60DmBwQ6qxsU737GF%2FifA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/22830",
+        "playable_ms": 289000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 33,
+        "license": "http://creativecommons.org/licenses/by-sa/2.5/",
+        "verified_at": "2026-11-20T13:03:01.039898Z"
+      },
+      "rights": {
+        "id": 33,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/2.5/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/22830",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039895Z"
+      }
+    },
+    {
+      "id": "jamendo:1145101",
+      "title": "Absolute",
+      "artist": "Daizy",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=137294&width=300&trackid=1145101",
+      "tags": [
+        "electronic",
+        "triphop",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 258000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1145101",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1145101&format=mp32&from=GtVTxBP%2FieggVKBFsh3QUw%3D%3D%7CiDvvVHVtPvbkMYqW2YflRg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1145101",
+        "playable_ms": 258000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 34,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039936Z"
+      },
+      "rights": {
+        "id": 34,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1145101",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039934Z"
+      }
+    },
+    {
+      "id": "jamendo:1165284",
+      "title": "Here and Now",
+      "artist": "Jupiter Makes Me Scream",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=140079&width=300&trackid=1165284",
+      "tags": [
+        "electronic",
+        "ambient",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 249000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1165284",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1165284&format=mp32&from=QgzAF2gNHzpEZNYTBMz%2B7w%3D%3D%7Co%2BQDDYzkgXcgKqQavYNUOA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1165284",
+        "playable_ms": 249000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 35,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.039972Z"
+      },
+      "rights": {
+        "id": 35,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1165284",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.039969Z"
+      }
+    },
+    {
+      "id": "jamendo:409692",
+      "title": "v-ESTIVO",
+      "artist": "Giulio Bradamante",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=50691&width=300&trackid=409692",
+      "tags": [
+        "pop",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 134000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "409692",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=409692&format=mp32&from=RUN2f9t52NF2BlBWRPhYUw%3D%3D%7CA%2FWS1MJUC%2Fa9kfsrUsEc8g%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/409692",
+        "playable_ms": 134000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 36,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/2.5/it/",
+        "verified_at": "2026-11-20T13:03:01.040013Z"
+      },
+      "rights": {
+        "id": 36,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/2.5/it/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/409692",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040010Z"
+      }
+    },
+    {
+      "id": "jamendo:1243521",
+      "title": "Night",
+      "artist": "twick prod.",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=149027&width=300&trackid=1243521",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "twick"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 157000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1243521",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1243521&format=mp32&from=dByq6%2BWmkVpcLpwZ5%2FHSCA%3D%3D%7CX5%2FIafYipZ2Ut40FgSQGHw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1243521",
+        "playable_ms": 157000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 37,
+        "license": "http://creativecommons.org/licenses/by/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040045Z"
+      },
+      "rights": {
+        "id": 37,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by",
+        "license_url": "http://creativecommons.org/licenses/by/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1243521",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040042Z"
+      }
+    },
+    {
+      "id": "jamendo:1161620",
+      "title": "My Mind To Me, My Kingdom Is",
+      "artist": "Project 5am",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=139541&width=300&trackid=1161620",
+      "tags": [
+        "electronic",
+        "ambient",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 194000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1161620",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1161620&format=mp32&from=ZphErf5P82T%2B46Hi7gC6OQ%3D%3D%7Cujlbpxq3ACgr4yUGKX2trQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1161620",
+        "playable_ms": 194000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 38,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040076Z"
+      },
+      "rights": {
+        "id": 38,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1161620",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040073Z"
+      }
+    },
+    {
+      "id": "jamendo:112440",
+      "title": "Obscene",
+      "artist": "Kew",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=15013&width=300&trackid=112440",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 284000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "112440",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=112440&format=mp32&from=TWyEy0e3wFk0hZxQMYUG0Q%3D%3D%7CtkOnHCGIvhOmKxVTJ40KwA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/112440",
+        "playable_ms": 284000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 39,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040121Z"
+      },
+      "rights": {
+        "id": 39,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/112440",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040119Z"
+      }
+    },
+    {
+      "id": "jamendo:1135246",
+      "title": "Sentimental",
+      "artist": "Matti Paalanen",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=136272&width=300&trackid=1135246",
+      "tags": [
+        "hiphop",
+        "peaceful",
+        "emotional"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 115000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1135246",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1135246&format=mp32&from=zD45XGhX2unadRirmYMryw%3D%3D%7C3tOyv70bsuhenqsiG%2FRfDw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1135246",
+        "playable_ms": 115000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 40,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040153Z"
+      },
+      "rights": {
+        "id": 40,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1135246",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040150Z"
+      }
+    },
+    {
+      "id": "jamendo:1068794",
+      "title": "thoughts",
+      "artist": "UNDER_SIGHT",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=126361&width=300&trackid=1068794",
+      "tags": [
+        "peaceful",
+        "atmospheric",
+        "meditative"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 180000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1068794",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1068794&format=mp32&from=O2m4uQJ%2FYZgg5I%2BxhL4QNA%3D%3D%7CrlU99KxAD6xiaAaPgbtHSQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1068794",
+        "playable_ms": 180000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 41,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040189Z"
+      },
+      "rights": {
+        "id": 41,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1068794",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040187Z"
+      }
+    },
+    {
+      "id": "jamendo:909586",
+      "title": "Feel",
+      "artist": "Credo",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=107668&width=300&trackid=909586",
+      "tags": [
+        "peaceful",
+        "meditative",
+        "gregorian"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 206000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "909586",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=909586&format=mp32&from=h0O0TeulwYTW0aZlky7L6Q%3D%3D%7CcAxLrG%2BRQ8TK8VMxprDrIw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/909586",
+        "playable_ms": 206000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 42,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/2.0/at/",
+        "verified_at": "2026-11-20T13:03:01.040243Z"
+      },
+      "rights": {
+        "id": 42,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/2.0/at/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/909586",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040240Z"
+      }
+    },
+    {
+      "id": "jamendo:1049759",
+      "title": "n\u00b02",
+      "artist": "koraad",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=123637&width=300&trackid=1049759",
+      "tags": [
+        "acidjazz",
+        "piano",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 205000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1049759",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1049759&format=mp32&from=ylkd7Kb2clflPOmbMOel2g%3D%3D%7CTMLZMfKHoruPj3uaoCDYNw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1049759",
+        "playable_ms": 205000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 43,
+        "license": "http://creativecommons.org/licenses/by/2.0/fr/",
+        "verified_at": "2026-11-20T13:03:01.040276Z"
+      },
+      "rights": {
+        "id": 43,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by",
+        "license_url": "http://creativecommons.org/licenses/by/2.0/fr/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1049759",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040273Z"
+      }
+    },
+    {
+      "id": "jamendo:16960",
+      "title": "bowlson's flight",
+      "artist": "LOGAN",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=2408&width=300&trackid=16960",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 264000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "16960",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=16960&format=mp32&from=p5W8Sl%2F%2BX9b5erJRrauSsQ%3D%3D%7CiQUPk6xb%2FFBpooeTtBo1cw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/16960",
+        "playable_ms": 264000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 44,
+        "license": "http://creativecommons.org/licenses/by-sa/2.5/",
+        "verified_at": "2026-11-20T13:03:01.040317Z"
+      },
+      "rights": {
+        "id": 44,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/2.5/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/16960",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040314Z"
+      }
+    },
+    {
+      "id": "jamendo:496356",
+      "title": "Green Sunny Line",
+      "artist": "EIVISSA SALINAS feat. DJ HSERES",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=58141&width=300&trackid=496356",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 256000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "496356",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=496356&format=mp32&from=MpDaMRCk7TLglbwRSm2eqg%3D%3D%7C%2Fu5yZ%2F0Jbi0jmv%2Br225AGg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/496356",
+        "playable_ms": 256000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 45,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:01.040351Z"
+      },
+      "rights": {
+        "id": 45,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/496356",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:01.040347Z"
+      }
+    },
+    {
+      "id": "jamendo:1159827",
+      "title": "The Last One (Old Times)",
+      "artist": "Frame",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=139270&width=300&trackid=1159827",
+      "tags": [
+        "electronic",
+        "ambient",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 360000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1159827",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1159827&format=mp32&from=ogJiFTMdyj9kJp4xfPuM6A%3D%3D%7Cu6t8LYhjBAdu6ameGSv2Aw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1159827",
+        "playable_ms": 360000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 46,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429479Z"
+      },
+      "rights": {
+        "id": 46,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1159827",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429470Z"
+      }
+    },
+    {
+      "id": "jamendo:250002",
+      "title": "Sound Ostateczny",
+      "artist": "Bielebny",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=36029&width=300&trackid=250002",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 259000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "250002",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=250002&format=mp32&from=rvu1iBMiKToyg7WF8nUIqw%3D%3D%7CEVf2nk%2FJlLQ0fYrJ1d7epQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/250002",
+        "playable_ms": 259000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 47,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429549Z"
+      },
+      "rights": {
+        "id": 47,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/250002",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429547Z"
+      }
+    },
+    {
+      "id": "jamendo:1077962",
+      "title": "Caribbean Hotel",
+      "artist": "Marco Panadero",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=128383&width=300&trackid=1077962",
+      "tags": [
+        "steelpan",
+        "peaceful",
+        "carribean"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 239000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1077962",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1077962&format=mp32&from=y3AeNOf0brLQ%2B72MIyIK3Q%3D%3D%7CKC3MsZSLJu353lr%2Be%2B556w%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1077962",
+        "playable_ms": 239000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 48,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429579Z"
+      },
+      "rights": {
+        "id": 48,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1077962",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429577Z"
+      }
+    },
+    {
+      "id": "jamendo:1127976",
+      "title": "Flats",
+      "artist": "Inom",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=135086&width=300&trackid=1127976",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "dark"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 198000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1127976",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1127976&format=mp32&from=xmex2a%2FfYEgvKFSMSYz2RA%3D%3D%7C8AFZYF8rkWbM4FkAHGr%2BMA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1127976",
+        "playable_ms": 198000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 49,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429603Z"
+      },
+      "rights": {
+        "id": 49,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1127976",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429601Z"
+      }
+    },
+    {
+      "id": "jamendo:1167199",
+      "title": "Breacking Down",
+      "artist": "Gilo",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=140356&width=300&trackid=1167199",
+      "tags": [
+        "triphop",
+        "drums",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 252000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1167199",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1167199&format=mp32&from=6mZ5n8grYaFkXXKHB8UCPA%3D%3D%7CkD9bOt1wSOPghdaHZ93N6g%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1167199",
+        "playable_ms": 252000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 50,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429620Z"
+      },
+      "rights": {
+        "id": 50,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1167199",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429619Z"
+      }
+    },
+    {
+      "id": "jamendo:1127996",
+      "title": "Procedura 1",
+      "artist": "Dmitriy Krotevich",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=135092&width=300&trackid=1127996",
+      "tags": [
+        "electronic",
+        "jazz",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 240000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1127996",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1127996&format=mp32&from=SiQGHr7%2BGk1c2vWPoTs%2Flg%3D%3D%7CcStAGb9Kz1a6DzdBo58qpg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1127996",
+        "playable_ms": 240000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 51,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429636Z"
+      },
+      "rights": {
+        "id": 51,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1127996",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429635Z"
+      }
+    },
+    {
+      "id": "jamendo:128863",
+      "title": "Hypnotic jingle",
+      "artist": "Tom La Meche",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=18170&width=300&trackid=128863",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 283000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "128863",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=128863&format=mp32&from=IhFMmlYI%2BX30WDTTlf3Yvg%3D%3D%7C%2F7MHoeaPH5KGkkxz6QIiwg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/128863",
+        "playable_ms": 283000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 52,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429658Z"
+      },
+      "rights": {
+        "id": 52,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/128863",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429657Z"
+      }
+    },
+    {
+      "id": "jamendo:1169243",
+      "title": "200205",
+      "artist": "Jukka-Pekka Flander",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=140664&width=300&trackid=1169243",
+      "tags": [
+        "electronic",
+        "idm",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 217000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1169243",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1169243&format=mp32&from=NkGOPCespKmGyzUTuLonLg%3D%3D%7CyvuvbC92M4icjkWwXG5l3A%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1169243",
+        "playable_ms": 217000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 53,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429675Z"
+      },
+      "rights": {
+        "id": 53,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1169243",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429674Z"
+      }
+    },
+    {
+      "id": "jamendo:178479",
+      "title": "stop the racism",
+      "artist": "RudySeb",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=26550&width=300&trackid=178479",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "peace"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 292000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "178479",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=178479&format=mp32&from=FyYRu7nbyps16NEypELAQw%3D%3D%7CsIktXGFev9wv9OJH%2Fe4agw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/178479",
+        "playable_ms": 292000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 54,
+        "license": "http://creativecommons.org/licenses/by-sa/2.0/be/",
+        "verified_at": "2026-11-20T13:03:02.429700Z"
+      },
+      "rights": {
+        "id": 54,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/2.0/be/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/178479",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429699Z"
+      }
+    },
+    {
+      "id": "jamendo:496293",
+      "title": "Tout Aimer de la Vie",
+      "artist": "Francesco",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=58152&width=300&trackid=496293",
+      "tags": [
+        "pop",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 314000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "496293",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=496293&format=mp32&from=oOxsvkQTa5s5ybW9c3kTuQ%3D%3D%7C4VP49w3CpwkVceHpjx6FOg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/496293",
+        "playable_ms": 314000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 55,
+        "license": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
+        "verified_at": "2026-11-20T13:03:02.429716Z"
+      },
+      "rights": {
+        "id": 55,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/2.0/fr/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/496293",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429714Z"
+      }
+    },
+    {
+      "id": "jamendo:400704",
+      "title": "Da Nang",
+      "artist": "Kave",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=49934&width=300&trackid=400704",
+      "tags": [
+        "electronic",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 307000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "400704",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=400704&format=mp32&from=XKfCPlRvZqiV6b%2FWcNK%2BxA%3D%3D%7CxH2mEcp2jH2faTLekfNZYg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/400704",
+        "playable_ms": 307000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 56,
+        "license": "http://creativecommons.org/licenses/by-sa/2.0/at/",
+        "verified_at": "2026-11-20T13:03:02.429736Z"
+      },
+      "rights": {
+        "id": 56,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/2.0/at/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/400704",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429735Z"
+      }
+    },
+    {
+      "id": "jamendo:349590",
+      "title": "Words (\u0421\u043b\u043e\u0432\u0430)",
+      "artist": "Sir  (Andrey Serazhetdinov-\u0410\u043d\u0434\u0440\u0435\u0439 \u0421\u0435\u0440\u0430\u0436\u0435\u0442\u0434\u0438\u043d\u043e\u0432)",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=45849&width=300&trackid=349590",
+      "tags": [
+        "pop",
+        "peaceful",
+        "upbeat"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 274000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "349590",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=349590&format=mp32&from=lr%2F4MLbswUNjnFm2ujQPCg%3D%3D%7CZmS3iAqz1HkH7XXtA%2Fd5TQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/349590",
+        "playable_ms": 274000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 57,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429754Z"
+      },
+      "rights": {
+        "id": 57,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/349590",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429752Z"
+      }
+    },
+    {
+      "id": "jamendo:1031898",
+      "title": "Unplugged Song",
+      "artist": "Lar Clobsay",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=121415&width=300&trackid=1031898",
+      "tags": [
+        "ambient",
+        "synthesizer",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 187000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1031898",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1031898&format=mp32&from=s5caCFQAymN2eL8nj1ReVw%3D%3D%7CxcQNeNF%2FYvzKoNBikzim3w%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1031898",
+        "playable_ms": 187000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 58,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429769Z"
+      },
+      "rights": {
+        "id": 58,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1031898",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429767Z"
+      }
+    },
+    {
+      "id": "jamendo:1063520",
+      "title": "Heart",
+      "artist": "Theratgroup",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=125681&width=300&trackid=1063520",
+      "tags": [
+        "classical",
+        "electricpiano",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 96000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1063520",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1063520&format=mp32&from=tFs5gInK4oizG%2FlkxTOm%2FA%3D%3D%7CcV3gVsohcGDsEgE%2FObzJqA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1063520",
+        "playable_ms": 96000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 59,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429796Z"
+      },
+      "rights": {
+        "id": 59,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1063520",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429795Z"
+      }
+    },
+    {
+      "id": "jamendo:330248",
+      "title": "Don't say goodbye",
+      "artist": "Musician Toy",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=44110&width=300&trackid=330248",
+      "tags": [
+        "hiphop",
+        "electronic",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 212000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "330248",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=330248&format=mp32&from=xYEdcpIVp2d93qU%2B1ncEVg%3D%3D%7CAEwIcND6jVvHukNuG8hHTg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/330248",
+        "playable_ms": 212000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 60,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429811Z"
+      },
+      "rights": {
+        "id": 60,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/330248",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429810Z"
+      }
+    },
+    {
+      "id": "jamendo:1163005",
+      "title": "ambiental2",
+      "artist": "Dj Boy Music",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=139743&width=300&trackid=1163005",
+      "tags": [
+        "ambient",
+        "peaceful",
+        "orginal"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 92000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1163005",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1163005&format=mp32&from=9Z2VdE%2Fjh7tKi98Byv77yw%3D%3D%7CRh98ejZR9e4duLE3EvOyXQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1163005",
+        "playable_ms": 92000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 61,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429825Z"
+      },
+      "rights": {
+        "id": 61,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1163005",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429824Z"
+      }
+    },
+    {
+      "id": "jamendo:320021",
+      "title": "\u0412\u0441\u0442\u0440\u0435\u0447\u0430",
+      "artist": "\u0410\u043b\u0435\u043a\u0441\u0435\u0439 \u0413\u0440\u0438\u0431\u0430\u043d\u043e\u0432/Aleksey Gribanoff",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=43188&width=300&trackid=320021",
+      "tags": [
+        "pop",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 266000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "320021",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=320021&format=mp32&from=rrONKFkrDMZjBdPtJT7ZFQ%3D%3D%7CwqK%2BwuXZ1SipEO0exSDMuQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/320021",
+        "playable_ms": 266000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 62,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429842Z"
+      },
+      "rights": {
+        "id": 62,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/320021",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429840Z"
+      }
+    },
+    {
+      "id": "jamendo:2035526",
+      "title": "Learning To Fly",
+      "artist": "Energy Music",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=522738&width=300&trackid=2035526",
+      "tags": [
+        "chillhop",
+        "chillout",
+        "guitar",
+        "strings",
+        "lounge",
+        "calm",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 144000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "2035526",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=2035526&format=mp32&from=FT1IU7POQJiFqecEdzAc1A%3D%3D%7CK4j%2BVdi6iPK97moLynZwuw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/2035526",
+        "playable_ms": 144000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 63,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429890Z"
+      },
+      "rights": {
+        "id": 63,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/2035526",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429889Z"
+      }
+    },
+    {
+      "id": "jamendo:2112586",
+      "title": "Whispering Waves",
+      "artist": "LEXMusic",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=544333&width=300&trackid=2112586",
+      "tags": [
+        "chillout",
+        "electronic",
+        "house",
+        "electricpiano",
+        "electroamplified",
+        "lounge",
+        "relaxing",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 134000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "2112586",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=2112586&format=mp32&from=Ba7msfLPMr7RNmHgmmSuYA%3D%3D%7Cny7A01hK5GmBBEg90U9%2BTg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/2112586",
+        "playable_ms": 134000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 64,
+        "license": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429917Z"
+      },
+      "rights": {
+        "id": 64,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc",
+        "license_url": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/2112586",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429916Z"
+      }
+    },
+    {
+      "id": "jamendo:986992",
+      "title": "Graceful spring",
+      "artist": "Neomusic",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=116168&width=300&trackid=986992",
+      "tags": [
+        "electronic",
+        "piano",
+        "peaceful",
+        "happy",
+        "romantics"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 190000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "986992",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=986992&format=mp32&from=Uz9%2BxaEfnX5YNpjVPAyIRQ%3D%3D%7CgQwm6Nm41KwDuK82z4z60A%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/986992",
+        "playable_ms": 190000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 65,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429936Z"
+      },
+      "rights": {
+        "id": 65,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/986992",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429934Z"
+      }
+    },
+    {
+      "id": "jamendo:941490",
+      "title": "marche de ferrel2012",
+      "artist": "Adragante",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=110590&width=300&trackid=941490",
+      "tags": [
+        "ambient",
+        "harp",
+        "strings",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 183000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "941490",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=941490&format=mp32&from=b2i6hNnjVAN7neYYIYwHuA%3D%3D%7C2GcOLkO0A8kZhJKwlav%2BpA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/941490",
+        "playable_ms": 183000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 66,
+        "license": "http://creativecommons.org/licenses/by/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429955Z"
+      },
+      "rights": {
+        "id": 66,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by",
+        "license_url": "http://creativecommons.org/licenses/by/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/941490",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429953Z"
+      }
+    },
+    {
+      "id": "jamendo:1902414",
+      "title": "adat example #1",
+      "artist": "LoFi Theory",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=463196&width=300&trackid=1902414",
+      "tags": [
+        "chillout",
+        "electronic",
+        "electricguitar",
+        "electroamplified",
+        "soft",
+        "peaceful",
+        "calm"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 139000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1902414",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1902414&format=mp32&from=WXbhFfbNARccbfh2f7yHXQ%3D%3D%7C4X4q5KlZ%2F9A%2FDJhd%2F%2FY5iw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1902414",
+        "playable_ms": 139000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 67,
+        "license": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429971Z"
+      },
+      "rights": {
+        "id": 67,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc",
+        "license_url": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1902414",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429969Z"
+      }
+    },
+    {
+      "id": "jamendo:1504561",
+      "title": "Sparkle",
+      "artist": "Secondhead",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=173217&width=300&trackid=1504561",
+      "tags": [
+        "drumnbass",
+        "electronic",
+        "peaceful",
+        "neutral"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 272000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1504561",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1504561&format=mp32&from=Ugm5tMLnq3Uw1qL6%2BCOajQ%3D%3D%7CLmfn1Gh5yb0SQO2FbYDobQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1504561",
+        "playable_ms": 272000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 68,
+        "license": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "verified_at": "2026-11-20T13:03:02.429985Z"
+      },
+      "rights": {
+        "id": 68,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc",
+        "license_url": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1504561",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.429984Z"
+      }
+    },
+    {
+      "id": "jamendo:311064",
+      "title": "MOOD_-_Drums_Of_Love_-_Mood",
+      "artist": "MOOD",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=42136&width=300&trackid=311064",
+      "tags": [
+        "newage",
+        "piano",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 349000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "311064",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=311064&format=mp32&from=YzZDAGnxCdPjBfSrXaVc%2Bw%3D%3D%7CFkW9gqiIbC%2BNqosVaJS%2F2Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/311064",
+        "playable_ms": 349000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 69,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:02.430011Z"
+      },
+      "rights": {
+        "id": 69,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/311064",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:02.430010Z"
+      }
+    },
+    {
+      "id": "jamendo:423119",
+      "title": "Elle",
+      "artist": "mindthings",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=51826&width=300&trackid=423119",
+      "tags": [
+        "electricguitar",
+        "electroamplified",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 125000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "423119",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=423119&format=mp32&from=zRWNCiQg%2BeUfh2yULscoog%3D%3D%7CaAUxf1ejVt7bXjl3PsyJ3g%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/423119",
+        "playable_ms": 125000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 70,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/2.0/fr/",
+        "verified_at": "2026-11-20T13:03:04.146517Z"
+      },
+      "rights": {
+        "id": 70,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/2.0/fr/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/423119",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146512Z"
+      }
+    },
+    {
+      "id": "jamendo:889544",
+      "title": "Eternel",
+      "artist": "Laurent Danis",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=104611&width=300&trackid=889544",
+      "tags": [
+        "newage",
+        "acousticguitar",
+        "strings",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 175000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "889544",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=889544&format=mp32&from=DeiOrj8zfq4vj%2FlJevylPg%3D%3D%7C4ou6Pa9F2XlkmWMklHiX3A%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/889544",
+        "playable_ms": 175000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 71,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146669Z"
+      },
+      "rights": {
+        "id": 71,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/889544",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146664Z"
+      }
+    },
+    {
+      "id": "jamendo:1264095",
+      "title": "Dreaming",
+      "artist": "OVR",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=212444&width=300&trackid=1264095",
+      "tags": [
+        "jazz",
+        "downtempo",
+        "indie",
+        "peaceful",
+        "neutral",
+        "instrumenal"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 174000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1264095",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1264095&format=mp32&from=HViTU2lkrLXLGzAI7EE2Dw%3D%3D%7CAMMeeDI2eWhKK2nps2wnhA%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1264095",
+        "playable_ms": 174000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 72,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146731Z"
+      },
+      "rights": {
+        "id": 72,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1264095",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146728Z"
+      }
+    },
+    {
+      "id": "jamendo:1045692",
+      "title": "Todo va a estar bien",
+      "artist": "Seba Lay",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=123178&width=300&trackid=1045692",
+      "tags": [
+        "folk",
+        "indie",
+        "peaceful",
+        "dreamy",
+        "chile"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 216000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1045692",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1045692&format=mp32&from=RcTYc8ziYearM0uPQZrD%2FA%3D%3D%7CCSQhRCFtSrgqfvZJ2WwgQQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1045692",
+        "playable_ms": 216000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 73,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146805Z"
+      },
+      "rights": {
+        "id": 73,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1045692",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146802Z"
+      }
+    },
+    {
+      "id": "jamendo:1135054",
+      "title": "The Journey",
+      "artist": "atw",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=136238&width=300&trackid=1135054",
+      "tags": [
+        "chillout",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 348000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1135054",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1135054&format=mp32&from=kvwdY7KE7YBsDNDFYpPcxQ%3D%3D%7CeiULvlstL8OlsvGwbq6dkg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1135054",
+        "playable_ms": 348000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 74,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146848Z"
+      },
+      "rights": {
+        "id": 74,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1135054",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146844Z"
+      }
+    },
+    {
+      "id": "jamendo:742093",
+      "title": "Luna",
+      "artist": "Delano",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=86722&width=300&trackid=742093",
+      "tags": [
+        "jazz",
+        "smoothjazz",
+        "saxophone",
+        "wind",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 258000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "742093",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=742093&format=mp32&from=PBMpRBqy9SbhX6hpe3bC3A%3D%3D%7ChDtbpbe0amfoS6FqHDAu1Q%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/742093",
+        "playable_ms": 258000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 75,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146891Z"
+      },
+      "rights": {
+        "id": 75,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/742093",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146887Z"
+      }
+    },
+    {
+      "id": "jamendo:210600",
+      "title": "Prassonissi",
+      "artist": "Andrea Barone",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=31129&width=300&trackid=210600",
+      "tags": [
+        "electronic",
+        "house",
+        "peaceful",
+        "lounge"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 273000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "210600",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=210600&format=mp32&from=gpMAD%2FyftDATYvFhLqRw%2BQ%3D%3D%7CL6z87Gn0bqhipY64KzWhvg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/210600",
+        "playable_ms": 273000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 76,
+        "license": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "verified_at": "2026-11-20T13:03:04.146935Z"
+      },
+      "rights": {
+        "id": 76,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc",
+        "license_url": "http://creativecommons.org/licenses/by-nc/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/210600",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.146932Z"
+      }
+    },
+    {
+      "id": "jamendo:11844",
+      "title": "trotinette",
+      "artist": "Fadi\u00e8se",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=1749&width=300&trackid=11844",
+      "tags": [
+        "folk",
+        "acousticguitar",
+        "strings",
+        "soft",
+        "calm",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 102000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "11844",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=11844&format=mp32&from=7zOHPHYTdjplLyRW3oBHqA%3D%3D%7CrOoPkOsQ%2FDZkb0wlnS3LLw%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/11844",
+        "playable_ms": 102000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 77,
+        "license": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.147037Z"
+      },
+      "rights": {
+        "id": 77,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-sa",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/11844",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.147035Z"
+      }
+    },
+    {
+      "id": "jamendo:64639",
+      "title": "Glory Box",
+      "artist": "XTN",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=6309&width=300&trackid=64639",
+      "tags": [
+        "triphop",
+        "electronic",
+        "electricguitar",
+        "electroamplified",
+        "film",
+        "calm",
+        "peaceful"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 244000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "64639",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=64639&format=mp32&from=Kg5zhPY40dUw8aTA65%2Foag%3D%3D%7C7XurfIPa2SwsQJj2S0fMQg%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/64639",
+        "playable_ms": 244000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 78,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.147100Z"
+      },
+      "rights": {
+        "id": 78,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/64639",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.147097Z"
+      }
+    },
+    {
+      "id": "jamendo:1008114",
+      "title": "Quiet Enjoyment by Charly Greuel (Jazz Friends version remastered)",
+      "artist": "Jazz Friends",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=118676&width=300&trackid=1008114",
+      "tags": [
+        "jazz",
+        "classicalguitar",
+        "peaceful",
+        "guitaresolo"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 277000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1008114",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1008114&format=mp32&from=yw54ZzXF%2FC5UNg8RnlQW2w%3D%3D%7CTanESDpfMRxTaalGnNL1qQ%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1008114",
+        "playable_ms": 277000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 79,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.147138Z"
+      },
+      "rights": {
+        "id": 79,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1008114",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.147135Z"
+      }
+    },
+    {
+      "id": "jamendo:1143256",
+      "title": "Parisian Dream of Alexander Vertinsky",
+      "artist": "Honkycat",
+      "image_url": "https://usercontent.jamendo.com?type=album&id=137080&width=300&trackid=1143256",
+      "tags": [
+        "piano",
+        "peaceful",
+        "songwiriter"
+      ],
+      "instrumental_label": "labelled instrumental by Jamendo",
+      "duration_ms": 162000,
+      "provider_track": {
+        "provider": "jamendo",
+        "provider_track_id": "1143256",
+        "playback_mode": "full_licensed",
+        "audio_url": "https://prod-1.storage.jamendo.com/?trackid=1143256&format=mp32&from=VwKjnU2VKWCO6FkKdRT1yg%3D%3D%7CN1IPuorDWRFgxvU8UKsV9A%3D%3D",
+        "deep_link": "https://www.jamendo.com/track/1143256",
+        "playable_ms": 162000,
+        "preview_asset_ms": 0,
+        "session_eligible": true,
+        "rights_record_id": 80,
+        "license": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "verified_at": "2026-11-20T13:03:04.147182Z"
+      },
+      "rights": {
+        "id": 80,
+        "source": "jamendo",
+        "policy_version": "m1-jamendo-v1",
+        "license_code": "by-nc-sa",
+        "license_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+        "session_eligible": true,
+        "reasons": [],
+        "attribution_url": "https://www.jamendo.com/track/1143256",
+        "cache_offline_allowed": false,
+        "terms_confirmed_on": "2026-11-20T00:00:00Z",
+        "decided_at": "2026-11-20T13:03:04.147179Z"
+      }
+    }
+  ]
 }

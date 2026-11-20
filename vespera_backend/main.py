@@ -17,7 +17,10 @@ import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from fastapi.responses import JSONResponse
+from sqlalchemy import case, func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
 
 # Load .env before any app imports that read settings
@@ -29,8 +32,9 @@ from app.api.events import router as events_router      # noqa: E402
 from app.api.sessions import router as sessions_router  # noqa: E402
 from app.api.traces import router as traces_router      # noqa: E402
 from app.api.twilight import router as twilight_router  # noqa: E402
-from app.infrastructure.database import init_db         # noqa: E402
-from app.legacy import home_feed, explore_feed, search  # noqa: E402
+from app.infrastructure.database import get_db, init_db  # noqa: E402
+from app.infrastructure.models import CatalogTrackIndex  # noqa: E402
+from app.api.feeds import router as feeds_router        # noqa: E402
 
 log = logging.getLogger("vespera")
 
@@ -89,9 +93,7 @@ def create_app() -> FastAPI:
     application.include_router(sessions_router, prefix="/api/v1")
 
     # Legacy home/explore/search endpoints (pre-VSP-003 Spotify/YT feeds)
-    application.include_router(home_feed.router, prefix="/api/v1")
-    application.include_router(explore_feed.router, prefix="/api/v1")
-    application.include_router(search.router, prefix="/api/v1")
+    application.include_router(feeds_router, prefix="/api/v1")
 
     return application
 
@@ -102,49 +104,42 @@ app = create_app()
 # ── Health endpoint ───────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["ops"])
-async def health() -> dict:
-    """Machine-readable health check used by hosting platforms and CI.
+async def health(db: AsyncSession = Depends(get_db)) -> JSONResponse:
+    """Readiness check: 200 when the DB answers, 503 when it does not.
 
-    Returns HTTP 200 when the application is ready to serve requests.
-    catalog_tracks=0 is not an error — it means the catalog has not been
-    seeded yet (run python scripts/seed_jamendo.py).
+    catalog_tracks=0 is not an error: the catalog has simply not been loaded.
     """
-    from app.infrastructure.database import AsyncSessionLocal
-    from app.infrastructure.models import CatalogTrackIndex
-    from sqlalchemy import select, func
-
-    db_ok = False
-    catalog_tracks = 0
-    session_eligible = 0
-    generated_at = None
-
     try:
-        async with AsyncSessionLocal() as session:
-            # Get counts
-            result = await session.execute(select(CatalogTrackIndex))
-            rows = result.scalars().all()
-            catalog_tracks = len(rows)
-            session_eligible = sum(1 for r in rows if r.session_eligible)
-            
-            # Get latest catalog_generated_at
-            if rows:
-                max_result = await session.execute(
-                    select(func.max(CatalogTrackIndex.catalog_generated_at))
+        await db.execute(text("SELECT 1"))
+        row = (
+            await db.execute(
+                select(
+                    func.count(CatalogTrackIndex.id),
+                    func.coalesce(
+                        func.sum(case((CatalogTrackIndex.session_eligible.is_(True), 1), else_=0)), 0
+                    ),
+                    func.max(CatalogTrackIndex.indexed_at),
                 )
-                generated_at = max_result.scalar_one_or_none()
-            
-            db_ok = True
-    except Exception as exc:
-        log.error("Health check DB error: %s", exc)
-
-    return {
-        "status": "ok" if db_ok else "degraded",
-        "db": "ok" if db_ok else "error",
-        "catalog_tracks": catalog_tracks,
-        "session_eligible": session_eligible,
-        "generated_at": generated_at.isoformat() if generated_at else None,
-        "version": "0.12.0",
-    }
+            )
+        ).one()
+    except Exception:
+        log.exception("Health check failed")
+        return JSONResponse(
+            {"status": "degraded", "db": "error", "catalog_tracks": 0,
+             "session_eligible": 0, "generated_at": None, "version": "0.12.0"},
+            status_code=503,
+        )
+    total, eligible, indexed_at = row
+    return JSONResponse(
+        {
+            "status": "ok",
+            "db": "ok",
+            "catalog_tracks": int(total),
+            "session_eligible": int(eligible),
+            "generated_at": indexed_at.isoformat() if indexed_at else None,
+            "version": "0.12.0",
+        }
+    )
 
 
 if __name__ == "__main__":

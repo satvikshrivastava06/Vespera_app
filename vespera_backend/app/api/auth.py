@@ -31,5 +31,9 @@ async def bootstrap_anonymous_token(
     subsequent requests in the ``X-Device-Token`` header.
     """
     await check_rate_limit(request, "auth_anonymous", max_calls=5, window_seconds=60)
+    # Spoof-proof ceiling on token minting, independent of the caller's IP.
+    await check_rate_limit(
+        request, "auth_anonymous_global", max_calls=120, window_seconds=3600, key="global"
+    )
     raw_token, user_id = await create_anonymous_token(db)
     return AnonymousTokenResponse(token=raw_token, user_id=user_id)

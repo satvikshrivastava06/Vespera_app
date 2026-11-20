@@ -9,6 +9,12 @@ class PlaylistItem(BaseModel):
     image_url: str
     search_query: str = ""
     audio_id: Optional[str] = None
+    # Playback fields for catalog-backed items (additive; older clients ignore them).
+    artist: str = ""
+    audio_url: Optional[str] = None
+    playable_ms: int = 0
+    session_eligible: bool = False
+    jamendo_share_url: Optional[str] = None
 
 
 class UserRanking(BaseModel):

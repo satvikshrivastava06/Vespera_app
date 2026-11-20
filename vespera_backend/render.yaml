@@ -21,6 +21,8 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false          # e.g. https://your-app.web.app,http://localhost:8080
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"           # VERIFY after first deploy: see README "Rate limiting"
       - key: RELOAD
         value: "false"
     healthCheckPath: /health

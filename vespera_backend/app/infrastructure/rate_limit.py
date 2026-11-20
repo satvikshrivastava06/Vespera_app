@@ -1,24 +1,57 @@
-"""Simple in-memory rate limiter for auth and Twilight endpoints.
+"""Per-endpoint rate limiting for public routes.
 
-Uses a sliding-window counter per (IP, endpoint) key. Production deployments
-behind a proxy must set uvicorn --proxy-headers so request.client.host reflects
-the real client IP (X-Forwarded-For), not the proxy's internal address.
+In-process and single-worker only: every uvicorn worker keeps its own counters.
+
+Environment:
+  RATE_LIMIT_ENABLED  "true" (default) or "false". Read on every call.
+  TRUSTED_PROXY_HOPS  0 (default): use the socket peer address.
+                      n > 0: use the n-th entry counted from the RIGHT of
+                      X-Forwarded-For, i.e. the address your own platform proxy
+                      appended. Entries to its left are client-supplied and are
+                      never trusted.
 """
 
 from __future__ import annotations
 
+import logging
 import os
-import time
-from collections import defaultdict
-from typing import DefaultDict, Tuple
 
 from fastapi import HTTPException, Request
 
-# {(ip, endpoint): [(timestamp, count), ...]}
-_calls: DefaultDict[Tuple[str, str], list[Tuple[float, int]]] = defaultdict(list)
+from app.infrastructure.limiter import SlidingWindowLimiter
 
-# Allow tests to bypass rate limiting
-_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "true"
+log = logging.getLogger("vespera.rate_limit")
+
+_limiters: dict[tuple[str, int, int], SlidingWindowLimiter] = {}
+
+
+def _enabled() -> bool:
+    return os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "true"
+
+
+def _proxy_hops() -> int:
+    try:
+        return max(0, int(os.environ.get("TRUSTED_PROXY_HOPS", "0") or 0))
+    except ValueError:
+        return 0
+
+
+def client_ip(request: Request) -> str:
+    hops = _proxy_hops()
+    if hops:
+        forwarded = [
+            part.strip()
+            for part in request.headers.get("x-forwarded-for", "").split(",")
+            if part.strip()
+        ]
+        if len(forwarded) >= hops:
+            return forwarded[-hops]
+    return request.client.host if request.client else "unknown"
+
+
+def reset_rate_limits() -> None:
+    """Clear all counters (used by tests)."""
+    _limiters.clear()
 
 
 async def check_rate_limit(
@@ -26,38 +59,23 @@ async def check_rate_limit(
     endpoint: str,
     max_calls: int,
     window_seconds: int,
+    key: str | None = None,
 ) -> None:
-    """Raise HTTPException 429 if (client_ip, endpoint) exceeded max_calls in the window.
-
-    Args:
-        request: FastAPI request containing client IP
-        endpoint: Unique identifier for this rate-limited endpoint
-        max_calls: Maximum allowed calls in the window
-        window_seconds: Sliding window size in seconds
-
-    Raises:
-        HTTPException: 429 Too Many Requests if limit exceeded
-    """
-    if not _ENABLED:
+    """Raise 429 when ``key`` (default: the caller's IP) exceeds the limit for ``endpoint``."""
+    if not _enabled():
         return
-    
-    client_ip = request.client.host if request.client else "unknown"
-    key = (client_ip, endpoint)
-    now = time.time()
-    cutoff = now - window_seconds
-
-    # Remove expired entries
-    _calls[key] = [(ts, cnt) for ts, cnt in _calls[key] if ts > cutoff]
-
-    # Count recent calls
-    total = sum(cnt for _, cnt in _calls[key])
-
-    if total >= max_calls:
+    limiter = _limiters.setdefault(
+        (endpoint, max_calls, window_seconds),
+        SlidingWindowLimiter(max_calls, window_seconds),
+    )
+    subject = key if key is not None else client_ip(request)
+    if not limiter.allow(subject):
+        log.warning(
+            "Rate limit hit endpoint=%s subject=%s x-forwarded-for=%r",
+            endpoint, subject, request.headers.get("x-forwarded-for"),
+        )
         raise HTTPException(
             status_code=429,
             detail=f"Rate limit exceeded: {max_calls} requests per {window_seconds}s",
-            headers={"Retry-After": str(window_seconds)},
+            headers={"Retry-After": str(limiter.wait_s(subject))},
         )
-
-    # Record this call
-    _calls[key].append((now, 1))

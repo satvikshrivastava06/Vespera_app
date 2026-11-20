@@ -7,10 +7,6 @@ python-dotenv
 pytest
 pytest-asyncio
 httpx
-youtube-search-python
-ytmusicapi
-spotipy
-pinecone-client
 # VSP-007: async DB stack
 sqlalchemy[asyncio]
 alembic

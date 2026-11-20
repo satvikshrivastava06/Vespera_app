@@ -1,14 +1,18 @@
 """Shared test configuration.
 
-Disables rate limiting for all tests to prevent 429 errors during rapid test execution.
+Rate limiting is off by default so unrelated tests can call public endpoints
+freely. Tests that exercise limiting turn it on with monkeypatch.setenv.
 """
 
-import os
 import pytest
 
-@pytest.fixture(scope="session", autouse=True)
-def disable_rate_limiting():
-    """Disable rate limiting for all tests."""
-    os.environ["RATE_LIMIT_ENABLED"] = "false"
+from app.infrastructure.rate_limit import reset_rate_limits
+
+
+@pytest.fixture(autouse=True)
+def _rate_limits_off_by_default(monkeypatch):
+    monkeypatch.setenv("RATE_LIMIT_ENABLED", "false")
+    monkeypatch.delenv("TRUSTED_PROXY_HOPS", raising=False)
+    reset_rate_limits()
     yield
-    os.environ.pop("RATE_LIMIT_ENABLED", None)
+    reset_rate_limits()
