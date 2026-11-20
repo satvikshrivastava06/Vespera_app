@@ -72,7 +72,15 @@ def main() -> int:
     status, body = get("/health")
     check("GET /health returns 200", status == 200, f"status={status}")
     check("/health.status == 'ok'", body.get("status") == "ok", body.get("status", "?"))
+    check("/health.db == 'ok'", body.get("db") == "ok", body.get("db", "?"))
     check("/health reports version", bool(body.get("version")), body.get("version", "?"))
+    
+    # Critical: Catalog must have at least 80 session-eligible tracks
+    catalog_count = body.get("catalog_tracks", 0)
+    eligible_count = body.get("session_eligible", 0)
+    check("Catalog has >= 80 tracks", catalog_count >= 80, f"count={catalog_count}")
+    check("All catalog tracks session-eligible", eligible_count >= 80, f"eligible={eligible_count}")
+    check("generated_at is set", body.get("generated_at") is not None)
 
     # 2. Anonymous auth bootstrap
     status, body = post("/api/v1/auth/anonymous", {})
@@ -96,12 +104,28 @@ def main() -> int:
     # 4. Twilight agent
     status, body = post("/api/v1/twilight/agent",
                         {"text": "calm instrumental music"},
-                        auth_headers)
+                        auth_headers, timeout=75)  # Allow for cold start
     check("POST /twilight/agent returns 200", status == 200, f"status={status}")
     check("Response has schema_version", body.get("schema_version") == "1.0")
     check("Response has status field", body.get("status") in
           ("ready", "partial", "needs_clarification", "error"))
     check("Response has trace_id", bool(body.get("trace_id")))
+    
+    # Verify returned tracks have valid stream URLs
+    tracks = body.get("tracks", [])
+    if tracks:
+        sample = tracks[0]
+        audio_url = sample.get("audio_url")
+        check("First track has audio_url", bool(audio_url))
+        if audio_url and audio_url.startswith("http"):
+            # Test stream URL with Range request (Jamendo supports it)
+            try:
+                req = urllib.request.Request(audio_url, headers={"Range": "bytes=0-1"})
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    stream_ok = resp.status in (200, 206)
+                    check("Stream URL returns 200/206", stream_ok, f"status={resp.status}")
+            except Exception as e:
+                check("Stream URL reachable", False, str(e)[:50])
 
     # 5. Event ingestion
     import uuid

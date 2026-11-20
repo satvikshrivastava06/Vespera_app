@@ -1,0 +1,1048 @@
+From 9b6376ee073c1b805002cad0acb746d2c6443bc7 Mon Sep 17 00:00:00 2001
+From: review <r@x>
+Date: Fri, 20 Nov 2026 12:45:15 +0000
+Subject: [PATCH 2/2] VSP-014: catalog-backed Home/Explore/Search; remove
+ Spotify/YouTube/Pinecone legacy stack
+
+---
+ vespera_backend/app/api/feeds.py            | 193 ++++++++++++++++
+ vespera_backend/app/legacy/__init__.py      |   0
+ vespera_backend/app/legacy/explore_feed.py  |  25 ---
+ vespera_backend/app/legacy/home_feed.py     | 236 --------------------
+ vespera_backend/app/legacy/search.py        |  54 -----
+ vespera_backend/app/schemas/feed.py         |   6 +
+ vespera_backend/app/services/pinecone_db.py |  65 ------
+ vespera_backend/main.py                     |   6 +-
+ vespera_backend/requirements.txt            |   4 -
+ vespera_backend/response.json               |   1 -
+ vespera_backend/scratch/test_ytmusic.py     |   9 -
+ vespera_backend/test_yt.py                  |  13 --
+ vespera_backend/test_yt_backend.py          |  25 ---
+ vespera_backend/test_yt_groq.py             |  18 --
+ vespera_backend/tests/test_feeds.py         | 162 ++++++++++++++
+ vespera_backend/upload_songs.py             |  74 ------
+ 16 files changed, 363 insertions(+), 528 deletions(-)
+ create mode 100644 vespera_backend/app/api/feeds.py
+ delete mode 100644 vespera_backend/app/legacy/__init__.py
+ delete mode 100644 vespera_backend/app/legacy/explore_feed.py
+ delete mode 100644 vespera_backend/app/legacy/home_feed.py
+ delete mode 100644 vespera_backend/app/legacy/search.py
+ delete mode 100644 vespera_backend/app/services/pinecone_db.py
+ delete mode 100644 vespera_backend/response.json
+ delete mode 100644 vespera_backend/scratch/test_ytmusic.py
+ delete mode 100644 vespera_backend/test_yt.py
+ delete mode 100644 vespera_backend/test_yt_backend.py
+ delete mode 100644 vespera_backend/test_yt_groq.py
+ create mode 100644 vespera_backend/tests/test_feeds.py
+ delete mode 100644 vespera_backend/upload_songs.py
+
+diff --git a/vespera_backend/app/api/feeds.py b/vespera_backend/app/api/feeds.py
+new file mode 100644
+index 0000000..3c2074f
+--- /dev/null
++++ b/vespera_backend/app/api/feeds.py
+@@ -0,0 +1,193 @@
++"""Catalog-backed Home, Explore and Search feeds (VSP-014).
++
++Replaces the legacy Spotify / YouTube-scraping feeds. Only rights-cleared,
++session-eligible catalog tracks are returned, so every card is playable.
++
++Sections that would need data the app does not have (listening history, trend
++data, release dates) are returned empty instead of being invented.
++"""
++
++from __future__ import annotations
++
++import datetime
++import hashlib
++import re
++from collections import Counter, defaultdict
++from typing import Optional
++
++from fastapi import APIRouter, Depends, Header, Query
++from sqlalchemy import select
++from sqlalchemy.ext.asyncio import AsyncSession
++
++from app.infrastructure.database import get_db
++from app.infrastructure.models import CatalogTrackIndex
++from app.schemas.feed import ExploreFeedResponse, HomeFeedResponse, PlaylistItem
++
++router = APIRouter(tags=["feeds"])
++
++_MAX_ROWS = 500
++_HOUR_RE = re.compile(r"(\d{1,2}):(\d{2})")
++# The index stores tags whitespace-joined, so multi-word tags arrive as separate
++# words. Very short or generic words are not useful as collection names.
++_STOP_TAGS = {"and", "the", "for", "with", "music"}
++
++
++def _hour_from_header(local_time: Optional[str]) -> int:
++    value = (local_time or "").strip()
++    if value:
++        try:
++            return datetime.datetime.fromisoformat(value).hour
++        except ValueError:
++            pass
++        match = _HOUR_RE.search(value)
++        if match:
++            hour = int(match.group(1))
++            lowered = value.lower()
++            if "pm" in lowered and hour < 12:
++                hour += 12
++            elif "am" in lowered and hour == 12:
++                hour = 0
++            if 0 <= hour < 24:
++                return hour
++    return datetime.datetime.now(datetime.timezone.utc).hour
++
++
++def _time_context(hour: int) -> str:
++    if 5 <= hour < 12:
++        return "morning"
++    if 12 <= hour < 17:
++        return "afternoon"
++    if 17 <= hour < 21:
++        return "evening"
++    return "late night"
++
++
++def _split_tags(tags_text: str) -> list[str]:
++    seen: set[str] = set()
++    tags: list[str] = []
++    for raw in (tags_text or "").split():
++        tag = raw.strip().lower()
++        if len(tag) >= 3 and tag not in _STOP_TAGS and tag not in seen:
++            seen.add(tag)
++            tags.append(tag)
++    return tags
++
++
++def _escape_like(term: str) -> str:
++    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
++
++
++def _to_item(row: CatalogTrackIndex) -> PlaylistItem:
++    return PlaylistItem(
++        title=row.title,
++        subtitle=row.artist,
++        image_url=row.image_url or "",
++        search_query="",
++        audio_id=row.track_id,
++        artist=row.artist,
++        audio_url=row.audio_url,
++        playable_ms=row.playable_ms,
++        session_eligible=row.session_eligible,
++        jamendo_share_url=row.jamendo_share_url,
++    )
++
++
++async def _eligible(db: AsyncSession) -> list[CatalogTrackIndex]:
++    result = await db.execute(
++        select(CatalogTrackIndex)
++        .where(CatalogTrackIndex.session_eligible.is_(True))
++        .where(CatalogTrackIndex.audio_url.is_not(None))
++        .order_by(CatalogTrackIndex.track_id)
++        .limit(_MAX_ROWS)
++    )
++    return list(result.scalars())
++
++
++def _daily_pick(rows: list[CatalogTrackIndex], count: int, salt: str) -> list[CatalogTrackIndex]:
++    """Deterministic selection that rotates once per UTC day."""
++    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
++    ranked = sorted(
++        rows,
++        key=lambda r: hashlib.sha256(f"{today}:{salt}:{r.track_id}".encode()).hexdigest(),
++    )
++    return ranked[:count]
++
++
++def _tag_collections(
++    rows: list[CatalogTrackIndex], max_cards: int, min_tracks: int = 3
++) -> list[PlaylistItem]:
++    """One card per tag. A card plays the first track of its collection."""
++    by_tag: dict[str, list[CatalogTrackIndex]] = defaultdict(list)
++    for row in rows:
++        for tag in _split_tags(row.tags_text):
++            by_tag[tag].append(row)
++    ranked = sorted(by_tag.items(), key=lambda kv: (-len(kv[1]), kv[0]))
++    cards: list[PlaylistItem] = []
++    for tag, members in ranked:
++        if len(members) < min_tracks:
++            continue
++        cards.append(
++            _to_item(members[0]).model_copy(
++                update={"title": tag.title(), "subtitle": f"{len(members)} tracks"}
++            )
++        )
++        if len(cards) == max_cards:
++            break
++    return cards
++
++
++@router.get("/home_feed", response_model=HomeFeedResponse)
++async def get_home_feed(
++    local_time: Optional[str] = Header(None),
++    db: AsyncSession = Depends(get_db),
++) -> HomeFeedResponse:
++    context = _time_context(_hour_from_header(local_time))
++    rows = await _eligible(db)
++    return HomeFeedResponse(
++        greeting=f"Good {context}",
++        ai_message=f"Picks for your {context}." if rows else "No tracks are available yet.",
++        rankings=[],
++        popular_playlists=_tag_collections(rows, max_cards=8),
++        jump_back_in=[],
++        quick_picks=[_to_item(r) for r in _daily_pick(rows, 8, "quick-picks")],
++        trending_now=[],
++        new_releases=[],
++        news=[],
++    )
++
++
++@router.get("/explore_feed", response_model=ExploreFeedResponse)
++async def get_explore_feed(db: AsyncSession = Depends(get_db)) -> ExploreFeedResponse:
++    rows = await _eligible(db)
++    counts = Counter(tag for row in rows for tag in _split_tags(row.tags_text))
++    return ExploreFeedResponse(
++        trending_events=[],
++        personalized_mixes=[],
++        categories=[tag.title() for tag, _ in counts.most_common(8)],
++    )
++
++
++@router.get("/search", response_model=list[PlaylistItem])
++async def search_music(
++    query: str = Query("", max_length=100),
++    search_type: str = Query("all"),
++    db: AsyncSession = Depends(get_db),
++) -> list[PlaylistItem]:
++    terms = query.lower().split()[:6]
++    if not terms:
++        return []
++    if search_type == "playlists":
++        wanted = " ".join(terms)
++        collections = _tag_collections(await _eligible(db), max_cards=50)
++        return [c for c in collections if wanted in c.title.lower()][:20]
++    stmt = (
++        select(CatalogTrackIndex)
++        .where(CatalogTrackIndex.session_eligible.is_(True))
++        .where(CatalogTrackIndex.audio_url.is_not(None))
++    )
++    for term in terms:
++        stmt = stmt.where(
++            CatalogTrackIndex.search_text.like(f"%{_escape_like(term)}%", escape="\\")
++        )
++    result = await db.execute(stmt.order_by(CatalogTrackIndex.track_id).limit(20))
++    return [_to_item(row) for row in result.scalars()]
+diff --git a/vespera_backend/app/legacy/__init__.py b/vespera_backend/app/legacy/__init__.py
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/vespera_backend/app/legacy/explore_feed.py b/vespera_backend/app/legacy/explore_feed.py
+deleted file mode 100644
+index d6547f3..0000000
+--- a/vespera_backend/app/legacy/explore_feed.py
++++ /dev/null
+@@ -1,25 +0,0 @@
+-"""Legacy explore feed endpoint."""
+-
+-from __future__ import annotations
+-
+-import asyncio
+-from fastapi import APIRouter
+-from app.schemas.feed import ExploreFeedResponse
+-from app.legacy.home_feed import _spotify_category, _spotify_playlist
+-
+-router = APIRouter(tags=["legacy"])
+-
+-
+-@router.get("/explore_feed", response_model=ExploreFeedResponse)
+-async def get_explore_feed() -> ExploreFeedResponse:
+-    results = await asyncio.gather(
+-        _spotify_category("toplists", limit=10, playlist=True),
+-        _spotify_playlist("37i9dQZEVXbMDoHDwVN2tF", limit=12),
+-        return_exceptions=True,
+-    )
+-    rows = [r if not isinstance(r, Exception) else [] for r in results]
+-    return ExploreFeedResponse(
+-        trending_events=rows[0],
+-        personalized_mixes=rows[1],
+-        categories=["Hyperpop", "Chill", "Lofi", "Techno", "Classical", "Indie"],
+-    )
+diff --git a/vespera_backend/app/legacy/home_feed.py b/vespera_backend/app/legacy/home_feed.py
+deleted file mode 100644
+index 173db09..0000000
+--- a/vespera_backend/app/legacy/home_feed.py
++++ /dev/null
+@@ -1,236 +0,0 @@
+-"""Legacy home feed endpoint — pre-VSP-003 Spotify/YT feeds.
+-
+-Retained for the existing Flutter home screen which still uses these
+-endpoints.  New code should use /api/v1/sessions instead.
+-"""
+-
+-from __future__ import annotations
+-
+-import asyncio
+-import datetime
+-import os
+-from typing import List, Optional
+-
+-from fastapi import APIRouter, Header
+-
+-from app.config import settings
+-from app.schemas.feed import HomeFeedResponse, NewsItem, PlaylistItem, UserRanking
+-
+-router = APIRouter(tags=["legacy"])
+-
+-# ── Provider clients (optional — degrade gracefully when missing) ─────────────
+-
+-def _get_spotify():
+-    try:
+-        import spotipy
+-        from spotipy.oauth2 import SpotifyClientCredentials
+-        cid = settings.SPOTIPY_CLIENT_ID
+-        sec = settings.SPOTIPY_CLIENT_SECRET
+-        if not cid or not sec:
+-            return None
+-        return spotipy.Spotify(
+-            client_credentials_manager=SpotifyClientCredentials(
+-                client_id=cid, client_secret=sec
+-            )
+-        )
+-    except Exception:
+-        return None
+-
+-
+-def _get_ytmusic():
+-    try:
+-        from ytmusicapi import YTMusic
+-        return YTMusic()
+-    except Exception:
+-        return None
+-
+-
+-_spotify = _get_spotify()
+-_ytmusic = _get_ytmusic()
+-
+-
+-# ── Helpers ───────────────────────────────────────────────────────────────────
+-
+-async def _yt_search(query: str, limit: int = 5, search_filter: str = "songs") -> List[PlaylistItem]:
+-    items: List[PlaylistItem] = []
+-    if _ytmusic:
+-        try:
+-            yt_filter = "playlists" if search_filter == "playlists" else "songs"
+-            results = _ytmusic.search(query, filter=yt_filter, limit=limit)
+-            for v in results:
+-                art = v["artists"][0]["name"] if v.get("artists") else "Artist"
+-                img = (v.get("thumbnails") or [{}])[-1].get("url", "")
+-                items.append(PlaylistItem(
+-                    title=v.get("title", "Track"),
+-                    subtitle=art,
+-                    image_url=img,
+-                    search_query=f"{v.get('title', '')} {art} audio",
+-                    audio_id=v.get("videoId") or v.get("browseId") or "",
+-                ))
+-            if items:
+-                return items
+-        except Exception:
+-            pass
+-
+-    try:
+-        from youtubesearchpython.__future__ import VideosSearch
+-        s = VideosSearch(query, limit=limit)
+-        result = await s.next()
+-        for v in (result.get("result") or []):
+-            thumbs = v.get("thumbnails") or [{}]
+-            items.append(PlaylistItem(
+-                title=str(v.get("title", "Track"))[:60],
+-                subtitle=(v.get("channel") or {}).get("name", "YouTube"),
+-                image_url=thumbs[0].get("url", ""),
+-                search_query=f"{v.get('title', '')} audio",
+-                audio_id=v.get("id", ""),
+-            ))
+-    except Exception:
+-        pass
+-    return items
+-
+-
+-async def _spotify_category(cat: str, limit: int = 5, playlist: bool = False) -> List[PlaylistItem]:
+-    if not _spotify:
+-        return await _yt_search(
+-            f"Popular {cat} {'playlists' if playlist else 'hits'} 2026",
+-            limit,
+-            "playlists" if playlist else "songs",
+-        )
+-    try:
+-        loop = asyncio.get_event_loop()
+-        res = await loop.run_in_executor(
+-            None, lambda: _spotify.category_playlists(category_id=cat, limit=limit)
+-        )
+-        return [
+-            PlaylistItem(
+-                title=p["name"],
+-                subtitle=(p.get("description") or "")[:40],
+-                image_url=p["images"][0]["url"] if p.get("images") else "",
+-                search_query=p["name"],
+-            )
+-            for p in res["playlists"]["items"]
+-        ]
+-    except Exception:
+-        return await _yt_search(f"Popular {cat} music", limit)
+-
+-
+-async def _spotify_playlist(pid: str, limit: int = 5) -> List[PlaylistItem]:
+-    if not _spotify:
+-        return await _yt_search("Global Top 50 Hits 2026", limit)
+-    try:
+-        loop = asyncio.get_event_loop()
+-        res = await loop.run_in_executor(
+-            None, lambda: _spotify.playlist_tracks(pid, limit=limit)
+-        )
+-        items = []
+-        for item in res.get("items") or []:
+-            t = item.get("track")
+-            if not t:
+-                continue
+-            art = t["artists"][0]["name"] if t.get("artists") else "Artist"
+-            img = t["album"]["images"][0]["url"] if t.get("album", {}).get("images") else ""
+-            items.append(PlaylistItem(
+-                title=t["name"], subtitle=art, image_url=img,
+-                search_query=f"{t['name']} {art} audio",
+-            ))
+-        return items
+-    except Exception:
+-        return await _yt_search("Top Billboard Hits 2026", limit)
+-
+-
+-async def _spotify_new_releases(limit: int = 5) -> List[PlaylistItem]:
+-    if not _spotify:
+-        return await _yt_search("New Music Friday 2026", limit)
+-    try:
+-        loop = asyncio.get_event_loop()
+-        res = await loop.run_in_executor(None, lambda: _spotify.new_releases(limit=limit))
+-        return [
+-            PlaylistItem(
+-                title=a["name"],
+-                subtitle=a["artists"][0]["name"] if a.get("artists") else "",
+-                image_url=a["images"][0]["url"] if a.get("images") else "",
+-                search_query=f"{a['name']} audio",
+-            )
+-            for a in res["albums"]["items"]
+-        ]
+-    except Exception:
+-        return await _yt_search("Fresh new music releases 2026", limit)
+-
+-
+-def _groq_vibe(time_ctx: str, weather: str):
+-    from app.config import settings
+-    if not settings.GROQ_API_KEY:
+-        return "Calibrating your rhythmic atmosphere...", ["pop", "chill"]
+-    try:
+-        from groq import Groq
+-        client = Groq(api_key=settings.GROQ_API_KEY)
+-        resp = client.chat.completions.create(
+-            messages=[{"role": "user", "content": (
+-                f"Analyze context (Time: {time_ctx}, Weather: {weather}) for Vespera. "
+-                "Output MESSAGE: [concise status] and CATEGORIES: [comma separated like 'pop,chill']."
+-            )}],
+-            model=settings.GROQ_MODEL,
+-            temperature=0.7,
+-        )
+-        raw = resp.choices[0].message.content
+-        msg = raw.split("MESSAGE:")[1].split("CATEGORIES:")[0].strip()
+-        cats = [c.strip() for c in raw.split("CATEGORIES:")[1].strip().split(",")]
+-        return msg, cats
+-    except Exception:
+-        return "Calibrating your rhythmic atmosphere...", ["pop", "chill"]
+-
+-
+-# ── Route ─────────────────────────────────────────────────────────────────────
+-
+-@router.get("/home_feed", response_model=HomeFeedResponse)
+-async def get_home_feed(
+-    local_time: Optional[str] = Header(None),
+-    weather: Optional[str] = Header(None),
+-) -> HomeFeedResponse:
+-    hour = datetime.datetime.now().hour
+-    time_ctx = (
+-        "morning" if 5 <= hour < 12 else
+-        "afternoon" if 12 <= hour < 17 else
+-        "evening" if 17 <= hour < 21 else
+-        "late night"
+-    )
+-    greeting = f"Good {time_ctx}"
+-    ai_msg, cats = _groq_vibe(time_ctx, weather or "Clear")
+-    if len(cats) < 2:
+-        cats = ["pop", "chill"]
+-
+-    results = await asyncio.gather(
+-        _spotify_category(cats[0], limit=8, playlist=True),
+-        _spotify_playlist("37i9dQZF1DX4WYpdVIPcmO", limit=8),
+-        _spotify_category(cats[1], limit=8),
+-        _spotify_playlist("37i9dQZEVXbMDoHDwVN2tF", limit=8),
+-        _spotify_new_releases(limit=8),
+-        return_exceptions=True,
+-    )
+-    rows = [r if not isinstance(r, Exception) else [] for r in results]
+-
+-    return HomeFeedResponse(
+-        greeting=greeting,
+-        ai_message=ai_msg,
+-        rankings=[],
+-        popular_playlists=rows[0],
+-        jump_back_in=rows[1],
+-        quick_picks=rows[2],
+-        trending_now=rows[3],
+-        new_releases=rows[4],
+-        news=[
+-            NewsItem(
+-                category="TRENDING",
+-                title="Global Hits 2026",
+-                subtitle="The sound of the future is here.",
+-                image_url="https://images.unsplash.com/photo-1459749411175-04bf5292ceea",
+-            ),
+-            NewsItem(
+-                category="EXCLUSIVE",
+-                title="Vespera Spatial Audio",
+-                subtitle="Experience music like never before.",
+-                image_url="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04",
+-            ),
+-        ],
+-    )
+diff --git a/vespera_backend/app/legacy/search.py b/vespera_backend/app/legacy/search.py
+deleted file mode 100644
+index 2834d1f..0000000
+--- a/vespera_backend/app/legacy/search.py
++++ /dev/null
+@@ -1,54 +0,0 @@
+-"""Legacy search endpoint."""
+-
+-from __future__ import annotations
+-
+-from fastapi import APIRouter
+-from app.schemas.feed import PlaylistItem
+-from app.legacy.home_feed import _ytmusic
+-
+-router = APIRouter(tags=["legacy"])
+-
+-
+-@router.get("/search", response_model=list[PlaylistItem])
+-async def search_music(query: str, search_type: str = "all") -> list[PlaylistItem]:
+-    if not query or len(query.strip()) < 1:
+-        return []
+-    yt_filter = "playlists" if search_type == "playlists" else "songs"
+-    items: list[PlaylistItem] = []
+-    if _ytmusic:
+-        try:
+-            import asyncio
+-            raw = await asyncio.to_thread(_ytmusic.search, query, filter=yt_filter, limit=20)
+-            for item in raw:
+-                thumbs = item.get("thumbnails") or []
+-                img = thumbs[-1]["url"] if thumbs else ""
+-                arts = item.get("artists") or []
+-                sub = arts[0].get("name", "Artist") if arts else "Artist"
+-                items.append(PlaylistItem(
+-                    title=item.get("title", "Track"),
+-                    subtitle=sub,
+-                    image_url=img,
+-                    search_query=f"{item.get('title', '')} {sub} audio",
+-                    audio_id=item.get("videoId") or item.get("playlistId") or "",
+-                ))
+-            if items:
+-                return items
+-        except Exception:
+-            pass
+-
+-    try:
+-        from youtubesearchpython.__future__ import VideosSearch
+-        s = VideosSearch(f"{query} audio", limit=10)
+-        result = await s.next()
+-        for v in (result.get("result") or []):
+-            thumbs = v.get("thumbnails") or [{}]
+-            items.append(PlaylistItem(
+-                title=str(v.get("title", "Track"))[:60],
+-                subtitle=(v.get("channel") or {}).get("name", "YouTube"),
+-                image_url=thumbs[0].get("url", ""),
+-                search_query=f"{v.get('title', '')} audio",
+-                audio_id=v.get("id", ""),
+-            ))
+-    except Exception:
+-        pass
+-    return items
+diff --git a/vespera_backend/app/schemas/feed.py b/vespera_backend/app/schemas/feed.py
+index 69ffdd0..742dd80 100644
+--- a/vespera_backend/app/schemas/feed.py
++++ b/vespera_backend/app/schemas/feed.py
+@@ -9,6 +9,12 @@ class PlaylistItem(BaseModel):
+     image_url: str
+     search_query: str = ""
+     audio_id: Optional[str] = None
++    # Playback fields for catalog-backed items (additive; older clients ignore them).
++    artist: str = ""
++    audio_url: Optional[str] = None
++    playable_ms: int = 0
++    session_eligible: bool = False
++    jamendo_share_url: Optional[str] = None
+ 
+ 
+ class UserRanking(BaseModel):
+diff --git a/vespera_backend/app/services/pinecone_db.py b/vespera_backend/app/services/pinecone_db.py
+deleted file mode 100644
+index 31fd289..0000000
+--- a/vespera_backend/app/services/pinecone_db.py
++++ /dev/null
+@@ -1,65 +0,0 @@
+-import requests
+-from pinecone import Pinecone
+-from app.config import settings
+-
+-# Initialize Pinecone
+-try:
+-    pc = Pinecone(api_key=settings.PINECONE_API_KEY)
+-except Exception:
+-    pc = None
+-
+-def get_huggingface_embedding(text: str) -> list:
+-    """
+-    Uses HuggingFace's free inference API to convert text to vectors.
+-    """
+-    model_id = "sentence-transformers/all-MiniLM-L6-v2"
+-    api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_id}"
+-    headers = {"Authorization": f"Bearer {settings.HF_TOKEN}"}
+-    
+-    try:
+-        response = requests.post(api_url, headers=headers, json={"inputs": [text]})
+-        if response.status_code == 200:
+-            return response.json()[0]
+-    except Exception:
+-        pass
+-    return [0.0] * 384 # Fallback empty vector
+-
+-def search_music(query: str, target_bpm: int, limit: int = 4):
+-    """
+-    Searches Pinecone Vector DB for songs matching the AI's vibe.
+-    """
+-    if not pc:
+-        return _mock_data(query)
+-
+-    try:
+-        index = pc.Index(settings.PINECONE_INDEX_NAME)
+-        query_vector = get_huggingface_embedding(query)
+-        
+-        results = index.query(
+-            vector=query_vector,
+-            top_k=limit,
+-            include_metadata=True,
+-            filter={"bpm": {"$gte": target_bpm - 10, "$lte": target_bpm + 10}} if target_bpm > 100 else None
+-        )
+-        
+-        playlists = []
+-        for match in results['matches']:
+-            meta = match['metadata']
+-            playlists.append({
+-                "title": meta.get("title", "Unknown Track"),
+-                "subtitle": f"{meta.get('genre', 'Vibe')} • {meta.get('bpm', '')} BPM",
+-                "image_url": meta.get("image_url", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe")
+-            })
+-        return playlists
+-
+-    except Exception as e:
+-        print(f"Pinecone Error/Empty DB: {e}")
+-        return _mock_data(query)
+-
+-def _mock_data(vibe: str):
+-    return [
+-        {"title": "Neon Nights", "subtitle": vibe, "image_url": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853"},
+-        {"title": "Classic Mood", "subtitle": "Curated for you", "image_url": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea"},
+-        {"title": "Deep House", "subtitle": "Trending", "image_url": "https://images.unsplash.com/photo-1557672172-298e090bd0f1"},
+-        {"title": "Twilight Audio", "subtitle": "Spatial Mix", "image_url": "https://images.unsplash.com/photo-1534447677768-be436bb09401"}
+-    ]
+diff --git a/vespera_backend/main.py b/vespera_backend/main.py
+index e24d2e6..5f6c73d 100644
+--- a/vespera_backend/main.py
++++ b/vespera_backend/main.py
+@@ -34,7 +34,7 @@ from app.api.traces import router as traces_router      # noqa: E402
+ from app.api.twilight import router as twilight_router  # noqa: E402
+ from app.infrastructure.database import get_db, init_db  # noqa: E402
+ from app.infrastructure.models import CatalogTrackIndex  # noqa: E402
+-from app.legacy import home_feed, explore_feed, search  # noqa: E402
++from app.api.feeds import router as feeds_router        # noqa: E402
+ 
+ log = logging.getLogger("vespera")
+ 
+@@ -93,9 +93,7 @@ def create_app() -> FastAPI:
+     application.include_router(sessions_router, prefix="/api/v1")
+ 
+     # Legacy home/explore/search endpoints (pre-VSP-003 Spotify/YT feeds)
+-    application.include_router(home_feed.router, prefix="/api/v1")
+-    application.include_router(explore_feed.router, prefix="/api/v1")
+-    application.include_router(search.router, prefix="/api/v1")
++    application.include_router(feeds_router, prefix="/api/v1")
+ 
+     return application
+ 
+diff --git a/vespera_backend/requirements.txt b/vespera_backend/requirements.txt
+index e29a70f..14a7652 100644
+--- a/vespera_backend/requirements.txt
++++ b/vespera_backend/requirements.txt
+@@ -7,10 +7,6 @@ python-dotenv
+ pytest
+ pytest-asyncio
+ httpx
+-youtube-search-python
+-ytmusicapi
+-spotipy
+-pinecone-client
+ # VSP-007: async DB stack
+ sqlalchemy[asyncio]
+ alembic
+diff --git a/vespera_backend/response.json b/vespera_backend/response.json
+deleted file mode 100644
+index d81558a..0000000
+--- a/vespera_backend/response.json
++++ /dev/null
+@@ -1 +0,0 @@
+-{"greeting":"Good afternoon","ai_message":"Deep Sync: Optimizing atmospheric audio frequencies.","rankings":[{"name":"Luna Ray","rank":1,"image_url":"https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"},{"name":"M. Davis","rank":2,"image_url":"https://api.dicebear.com/7.x/avataaars/svg?seed=Davis"},{"name":"Synth Kid","rank":3,"image_url":"https://api.dicebear.com/7.x/avataaars/svg?seed=Kid"}],"popular_playlists":[{"title":"Pop 2026 - Pop Music Playlist - Pop Music 2026","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/QqcjLTv4znBrCIiD8ingmkLvSpW2nMLIbYTqKhI10RYVffZOxKG82RSqpvLTyGQDItjFhqIa9Fs=s1200","search_query":"Pop 2026 - Pop Music Playlist - Pop Music 2026 full playlist","audio_id":"VLPLDIoUOhQQPlXqz5QZ3dx-lh_p6RcPeKjv"},{"title":"No Swearing Songs 2026 ♫ Music Clean 2026 Playlist (EDM & Pop Songs for School)","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/sY6kfLK1Z1fOWrgMKTYt717t3VKpje_ttXe13HMbVawClqtNQPch-FfpV7Qh4Q0ipJ2P8mtTU3H_=s1200","search_query":"No Swearing Songs 2026 ♫ Music Clean 2026 Playlist (EDM & Pop Songs for School) full playlist","audio_id":"VLPLL92dfFL9ZdLNQjy6Wu1o6LI5LCngMxnz"},{"title":"90's & 00's Indian Pop, Rock & Remix Songs","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/7F0zjF-Qx3vNWuFAfMPa6zyxjpK0IVAqiCMIrHvi29UuImYXHj0q5SkFmJZn4n1skGEO69L4BLH2=s1200","search_query":"90's & 00's Indian Pop, Rock & Remix Songs full playlist","audio_id":"VLPLo7WLtfSrhdbdR4K_EQzplNiDYZMFk8jQ"},{"title":"Music playlist 2019 clean - Top pop songs 2019 clean playlist lyrics","subtitle":"None songs","image_url":"https://i.ytimg.com/vi/mpOQjj4F8ko/hq720.jpg?sqp=-oaymwEXCNUGEOADIAQqCwjVARCqCBh4INgESFo&rs=AMzJL3ls_zNc4OkLf-Swsx8fDUCh8FFE5w","search_query":"Music playlist 2019 clean - Top pop songs 2019 clean playlist lyrics full playlist","audio_id":"VLPLF8NEhGnwmfcuL3RwwJS6uyaVPhQS1CvT"},{"title":"South African Pop 2026 - Best South African Pop Songs 2026 (Top African Pop Music 2026 Mix)","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/X9E-o4W8OoVoSGRV-AOfTJuJVIVqpZ8mB5-C1qXCdnBNqP0U9o4lytOFUvgURwLyGXUMC4v5Wg=s1200","search_query":"South African Pop 2026 - Best South African Pop Songs 2026 (Top African Pop Music 2026 Mix) full playlist","audio_id":"VLPLA8CCOtwIqEYuNxVK2g8n7FvCFGLR_mUp"},{"title":"Top Pop Hits 2026 🎧 Best New Pop Songs Playlist - Trending Music 2026 🎵","subtitle":"None songs","image_url":"https://i.ytimg.com/vi/RwY9Af1V63Y/hq720.jpg?sqp=-oaymwEXCNUGEOADIAQqCwjVARCqCBh4INgESFo&rs=AMzJL3kBfDjiAXGdUPp-gfqw1EedCDW0DQ","search_query":"Top Pop Hits 2026 🎧 Best New Pop Songs Playlist - Trending Music 2026 🎵 full playlist","audio_id":"VLPLbvyTVueDz4yAuourCr_B1EWTBWrM8oEo"},{"title":"Top Songs 2019 - Best Songs 2019 Playlist - Music 2019 (Updated Songs Playlist 2025)","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/X_5gezmuImEhu9d44lPR1jfIRZjz1XWd-wdcXl1_3KVuAbJFqiaP3iful03XVJy8YByZ8_vl8os=s1200","search_query":"Top Songs 2019 - Best Songs 2019 Playlist - Music 2019 (Updated Songs Playlist 2025) full playlist","audio_id":"VLPLZjyOXTKuD2Q_VN-XXHK-HVhQl58-ZI_H"},{"title":"Top Hip Hop Songs 2025 - Best Rap Music Playlist","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/zXGdrDti5W5dxQ4osNkQPGkNBj2EDBj77Y-qoik5PiTGFcqqNY9EMTv46UzmMXUkaWVeOmVXzs2v=s1200","search_query":"Top Hip Hop Songs 2025 - Best Rap Music Playlist full playlist","audio_id":"VLPLetgZKHHaF-Zq1Abh-ZGC4liPd_CV3Uo4"},{"title":"French Music 2026 - French Pop Music - French Hits & Best French Songs 2026","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/JV62Iw4GW5RrhyvG27ewgX4JvZRMbp_daJsPKpHB1Wcv7Z3yCta8Qb5zgBnOjYXonWp8AS4U6Mo=s1200","search_query":"French Music 2026 - French Pop Music - French Hits & Best French Songs 2026 full playlist","audio_id":"VLPLVRMW2AX3_4_-2T87gJvH2nryl3buSj9C"},{"title":"New Pop Songs 2026 - Pop Music 2026 - New Pop & Pop Songs","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/NaSODD-gZ4Ecp2zmTCJTnvASMQp-UomEItKAzdhBL3Y6JlHqC75LGl9l21bGWkWDyzDFC72QXWg=s1200","search_query":"New Pop Songs 2026 - Pop Music 2026 - New Pop & Pop Songs full playlist","audio_id":"VLPLDIoUOhQQPlUDNpjEYTTE9tb-QvUHUSMt"},{"title":"Pop Songs Latest 2026 Playlist","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/ouaA70Hp8VPNTIWK11kDmQPY5thxKoj52Fy_OTklyOvVyYgJBhSEPn0if3n-zxW7qr6batmb4uo=s1200","search_query":"Pop Songs Latest 2026 Playlist full playlist","audio_id":"VLPLP96nwbVtj-Bn_ffzYxTM_l24XI693KuG"},{"title":"Clean Pop Hits 2021    Clean Hits 2021 - Best Pop 2021 Hits","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/XHTuVUL6xNo7zy0LfvX6SPJBLKZWglXR7_F45KJPUW0qvQHJf6k8DeBHL8qety3CAnjcFe7MwIQ=s1200","search_query":"Clean Pop Hits 2021    Clean Hits 2021 - Best Pop 2021 Hits full playlist","audio_id":"VLPLuIAx5_9AFUiVwCbv4UN1V0vOJm4e-gwv"},{"title":"Top 100 Songs of 2012 & Top 100 Songs of 2013 (Billboard)","subtitle":"None songs","image_url":"https://yt3.ggpht.com/KpRqvQIg0SzkAMiroQrhJX3cKZ-3qmlybJDAUBPANHAcPKXoBp3yYb2kBfNT43R8oQ9cFIWwkiM=s1200","search_query":"Top 100 Songs of 2012 & Top 100 Songs of 2013 (Billboard) full playlist","audio_id":"VLPLgDP5UKLWaCA_cJeIJBcVLbLFid49AMQh"},{"title":"Top 1000+ Pop Hits of the 80's","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/q61Y132PYZbyHlHMHQOfpMG-dODeP1rDnysA2PyBD4mSotroWLVszdqAxBRki15DqGrPCOkptg=s1200","search_query":"Top 1000+ Pop Hits of the 80's full playlist","audio_id":"VLPLHE6dkXvnNgMQd6ogwNOncbWt5V-x5oRF"},{"title":"Clean Pop playlist (2016)","subtitle":"None songs","image_url":"https://yt3.ggpht.com/1auZFBlw7yjWm14l4ZSM8DlMU1H3PB6AbOfQE_i-n3oNeEvCm2W5D9Ha9ivQ14YnYwskQoLm18w=s1200","search_query":"Clean Pop playlist (2016) full playlist","audio_id":"VLPL_sXHkegAze-uB1LHkUit1fApgdT1SFev"},{"title":"Spotify Playlist 2026 - Top Spotify 2026 - Spotify Playlist","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/KxRzAhMgcmnwgY0rjBRstKk9fxe8_UUVagn76114doV-fjA9WSdjwkX637Fgkq8hXRhKfp1L090=s1200","search_query":"Spotify Playlist 2026 - Top Spotify 2026 - Spotify Playlist full playlist","audio_id":"VLPLOHoVaTp8R7d3L_pjuwIa6nRh4tH5nI4x"},{"title":"Pop Songs 2021🔝 Best Pop Music Playlist 2021","subtitle":"None songs","image_url":"https://yt3.ggpht.com/24SiZHTGzi2U4p23hWHOPRHM4vboQFPCB630I-CbsHcviOlMcf7fnFnYAiPO9A0k79Ozro9u2qj5=s1200","search_query":"Pop Songs 2021🔝 Best Pop Music Playlist 2021 full playlist","audio_id":"VLPLa2a9FJY91_0x1s4eq6mf9b91m3Pahv0G"},{"title":"Top K-pop playlist 2020-2025","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/GYCLqISjBFMjgJVR9JWojTQs2kiJ2QxI1hL_RZiZ7yaUKDSGyI0z7YZBJarFjmomtzZKYP3G1_m5=s1200","search_query":"Top K-pop playlist 2020-2025 full playlist","audio_id":"VLPL6xWsUSPh7d7m6S_NQrArkUQknoj5HM6E"},{"title":"Vevo 2026 DANCE - POP Hits US 2026 - Top EDM Videos 2026 - New Pop Songs 2026","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/AfvI3W3jzYgjHQK1wn3AF7qQqRqe-sciBxgeEfnd-biqwhEWEnZVgQWm1z35urzoANhC8wvBQVE=s1200","search_query":"Vevo 2026 DANCE - POP Hits US 2026 - Top EDM Videos 2026 - New Pop Songs 2026 full playlist","audio_id":"VLPLesm76O8GFZOpPPwQtFA5X5Q-Q694_DNU"},{"title":"100 Best Songs of 1984: Pop's Greatest Year (according to Rolling Stone)","subtitle":"None songs","image_url":"https://yt3.googleusercontent.com/bRf0qd1fsbIT3ja0WyUgpHMytKOPLV_OEBM6wB3tUVq0FMdJ-27x2KF0iKuzReDVunQEZaflUQ=s1200","search_query":"100 Best Songs of 1984: Pop's Greatest Year (according to Rolling Stone) full playlist","audio_id":"VLPLRX4gYcQK3W4iKjLo1OPG7PioYSY4NU9Y"}],"jump_back_in":[{"title":"Levitating","subtitle":"Dua Lipa","image_url":"https://yt3.googleusercontent.com/UpJ_IhBqyhQV9b2UGcDxxWDm14kRQ2eY1o9S96AGsbE7Ol8isbpbPA0Yefvg8S8ZGAX9L1g4xaj21zVJ=w120-h120-l90-rj","search_query":"Levitating Dua Lipa audio","audio_id":"OsfAnsMY21M"},{"title":"Dilbar (From \"Satyameva Jayate\")","subtitle":"Neha Kakkar","image_url":"https://yt3.googleusercontent.com/_ca2n9jCBvM2xFYc90GBO7tsaSjxr1N6qMMvsWUzlSXaQMtJAKD7X-87kp5NQdP-0OluyBprEokkV7b5=w120-h120-l90-rj","search_query":"Dilbar (From \"Satyameva Jayate\") Neha Kakkar audio","audio_id":"7uSj-x6EIUE"},{"title":"Beauty And A Beat (feat. Nicki Minaj)","subtitle":"Justin Bieber","image_url":"https://yt3.googleusercontent.com/jXXzY2fTfxgr0_wR_I_V8W3Ai0L3ece217Biqm0tY36I9VAoce09xXmjgt8mXggTVgGGBHdJ3eAyICY=w120-h120-l90-rj","search_query":"Beauty And A Beat (feat. Nicki Minaj) Justin Bieber audio","audio_id":"aWkPBCF8rFU"},{"title":"Top Dance Hit 2026","subtitle":"Most Popular Internet Dance Song","image_url":"https://yt3.googleusercontent.com/WKOhNHcYjuRYSNM0isbkHA3yVzCMI7JBHANbrF8sH5mJDMEuXY0fBkc0hPd0FrvJRatv7gLTn0q8E2fY=w120-h120-l90-rj","search_query":"Top Dance Hit 2026 Most Popular Internet Dance Song audio","audio_id":"ycIkpy_0VIY"},{"title":"Dandelions","subtitle":"Ruth B.","image_url":"https://yt3.googleusercontent.com/ffIxiJuTfizhVr_0d8ZRYfwVGbx1IF4-yr4QYwq2AYc11fbghPvDnES4u9fhsOokYgmgtigwgMWoyLz0=w120-h120-l90-rj","search_query":"Dandelions Ruth B. audio","audio_id":"HZbsLxL7GeM"},{"title":"Snooze","subtitle":"SZA","image_url":"https://yt3.googleusercontent.com/o3i9-dA34xDjbw1hz4nhJO6LA6V4-ZYjs_kh7aUA0sq1pieJejt_Hnor-Rxl77GA1ugAFqxcmEUwy3c=w120-h120-l90-rj","search_query":"Snooze SZA audio","audio_id":"ZqSlV5LmrTg"},{"title":"Kesariya (From \"Brahmastra\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/CH0SThQN0HOk2eV81GGA-Tiftn58G48iy8lEyKNXJjbDSI9ApKKnmt4ncwr5gO_mZoQvFF3HPfHtky1Y=w120-h120-l90-rj","search_query":"Kesariya (From \"Brahmastra\") Arijit Singh audio","audio_id":"NJAv_7lHUIU"},{"title":"Señorita","subtitle":"Shawn Mendes","image_url":"https://yt3.googleusercontent.com/TK-09E9wZOUk84ktqwb-zNBXfnY3Z927d3fpJ3ObwwOyREKzjAQMMYx0pGSjVAAV2zpRJDpDAavlAPSz=w120-h120-l90-rj","search_query":"Señorita Shawn Mendes audio","audio_id":"VKC_hzJ3jzg"},{"title":"死ぬのがいいわ - Shinunoga E-Wa","subtitle":"Fujii Kaze","image_url":"https://yt3.googleusercontent.com/R4k8Fj3T1Y-LvlSrMIY6ekpKg5OviQqzaNTq4WoL2QHwBjc6C0CHOMl7R8Kbdyj8atWWkpsYi1HPCbnU=w120-h120-l90-rj","search_query":"死ぬのがいいわ - Shinunoga E-Wa Fujii Kaze audio","audio_id":"3zh9Wb1KuW8"},{"title":"On The Floor (Radio Edit)","subtitle":"Jennifer Lopez","image_url":"https://yt3.googleusercontent.com/2vLwLTzlPYPnHuOqkxNFEH6rFM8U3EgEr3VU3BRr_oRPAWLupLX8krNspzikiHGkmcJxIGZk-aJBjTcM=w120-h120-l90-rj","search_query":"On The Floor (Radio Edit) Jennifer Lopez audio","audio_id":"gDRL47NzG5o"},{"title":"Shape of You","subtitle":"Ed Sheeran","image_url":"https://yt3.googleusercontent.com/TMbA3LImAL96nFkm5cI1x6LiEMvMbRg4IRxEeABd9qpXsfmwKhZHRD1MucnjG5QIsVEp0Vpn7h7M51FH3Q=w120-h120-l90-rj","search_query":"Shape of You Ed Sheeran audio","audio_id":"xTvyyoF_LZY"},{"title":"Party Mashup - DJ Praveen - Nonie","subtitle":"Shruti Rane","image_url":"https://yt3.googleusercontent.com/f3OdRXy0RIhGAU27oq7Zjs0qXnv34lNDoG0zX_g2jPNyKESyqaDp-lcupVAiNr1gZxGY374A3rU801OG=w120-h120-l90-rj","search_query":"Party Mashup - DJ Praveen - Nonie Shruti Rane audio","audio_id":"5XTxuz-_myg"},{"title":"O Saki Saki (From \"Batla House\")","subtitle":"Neha Kakkar","image_url":"https://yt3.googleusercontent.com/ZtswlruNtJ3pRZKZdYyf2l7FMPcu8MN9IhtoVIoFan8erqKTifrVbYyLSJ1h8QoGpk0r1bh-sygRJcM1=w120-h120-l90-rj","search_query":"O Saki Saki (From \"Batla House\") Neha Kakkar audio","audio_id":"FhiAn9wKqgQ"},{"title":"Homewrecker","subtitle":"sombr","image_url":"https://yt3.googleusercontent.com/j75nRhWXJf_EUFoIz6KZ4KzBBGvSv6lAHVSjoofP7ndFBwOlvYGDeZ-c0uN2hEyDUPfk5u6AlriKNI4=w120-h120-l90-rj","search_query":"Homewrecker sombr audio","audio_id":"E9onENVBmKY"},{"title":"Habibi (Albanian Remix)","subtitle":"Ricky Rich","image_url":"https://yt3.googleusercontent.com/Wp1Cl8ShgJPA1F3DXeq5K60d7zD4McArx9OAnWJSPJL9-ITjQ-wZA7Wfu0ZEKewT39GIs8pncIsrMQ=w120-h120-l90-rj","search_query":"Habibi (Albanian Remix) Ricky Rich audio","audio_id":"9XsXJpYc7pU"},{"title":"drunk text","subtitle":"Henry Moodie","image_url":"https://yt3.googleusercontent.com/ohQ5w6Hpo4U2Nk8tGglpFqgsCNshy183gcKm08K8XnkYo32p1IqWY84K_5WvOaYoarTW2qCachlPCVAEgA=w120-h120-l90-rj","search_query":"drunk text Henry Moodie audio","audio_id":"bokJfDZCzNk"},{"title":"Sun is up","subtitle":"INNA","image_url":"https://yt3.googleusercontent.com/igKAlmIcq6djWn16NwgU4wX8scuqbxWiJgYRD1Al8VjNQmlVgQnjI9gxVdYv0bXc2IakiluDmFYLrpnEqg=w120-h120-l90-rj","search_query":"Sun is up INNA audio","audio_id":"TdYNDCME8pc"},{"title":"R.I.O. Megamix (Continuous DJ Mix)","subtitle":"R.I.O.","image_url":"https://yt3.googleusercontent.com/Fcmaq8vcoAmAGfoUJQBI4J0Ya0QK4PusXPa6biK1q0LeUh2RtftFSp1WU6vjpuol_e2HIRgX_lVBsRM=w120-h120-l90-rj","search_query":"R.I.O. Megamix (Continuous DJ Mix) R.I.O. audio","audio_id":"iK-N9lhKv-A"},{"title":"Apna Bana Le (From \"Bhediya\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/EqN-4y9jQg91mt-94KKI8L1xu3olMS-Fh_WLL5tMlnqh1pSRzt-uWdnTVlY_GBnvLuA_WJmS6FYAXJlZtQ=w120-h120-l90-rj","search_query":"Apna Bana Le (From \"Bhediya\") Arijit Singh audio","audio_id":"YALvuUpY_b0"},{"title":"My Jesus | Top Easter Worship Songs 2026 | Powerful Christian Praise","subtitle":"Hazel Aria","image_url":"https://yt3.googleusercontent.com/ui8D6YORy5Jo6iQdKxWiX9oWgNWzs1voYx7HSqKkijLWSCVzv0BGs4HLCVyWvXm2r5ilwStYnUmH8Zl_dA=w120-h120-l90-rj","search_query":"My Jesus | Top Easter Worship Songs 2026 | Powerful Christian Praise Hazel Aria audio","audio_id":"1HMREZDMk_E"}],"quick_picks":[{"title":"Chill (feat. Shivani Yadav)","subtitle":"Bintu Pabra","image_url":"https://yt3.googleusercontent.com/J423huucNSNcWl9UjN8Xm39SDLgv4neaEw8ki-5Yv-PLuJkp0Z7wzVCvpcECpl68Tor89iKE8iikIms=w120-h120-l90-rj","search_query":"Chill (feat. Shivani Yadav) Bintu Pabra audio","audio_id":"KHNvjk5SmiU"},{"title":"Mood (Lofi)","subtitle":"Yagih Mael","image_url":"https://yt3.googleusercontent.com/SqOdpb-czRhVGvvhd32rQC49tkdLVxHL01XbDgubNxqKyAZ9N26qWN4gARJB9Qzedl7PqD7HRogSoLw=w120-h120-l90-rj","search_query":"Mood (Lofi) Yagih Mael audio","audio_id":"1wq47tabJh0"},{"title":"Heat Waves","subtitle":"Glass Animals","image_url":"https://yt3.googleusercontent.com/w9WrUTZckeY-PCYJsytiVyw5tVCtFsirBtnYGRvSIby3oRjYXHaszrbJsyfmZ6mdbE2UB-c7iqjJdR0=w120-h120-l90-rj","search_query":"Heat Waves Glass Animals audio","audio_id":"XDjB9E3YtUE"},{"title":"snowfall","subtitle":"Øneheart","image_url":"https://yt3.googleusercontent.com/2IYboQLztE7gb4-j8qNYM5H65M9X_u2vHuebHvXpWTw0ikELEnkrUZVjwa7HOYq8_CE-7MA8c-rd6CyZ=w120-h120-l90-rj","search_query":"snowfall Øneheart audio","audio_id":"OtLcqr3RQJY"},{"title":"Sunday Morning","subtitle":"Maroon 5","image_url":"https://yt3.googleusercontent.com/b2Qn9rmBW7jWJ3elYCEdk3zXwrlpdH8wCNyHiuHbwzsVTlt8xA2sQSts-qD9U1mIXFYQGTBWtsCwqdgIDg=w120-h120-l90-rj","search_query":"Sunday Morning Maroon 5 audio","audio_id":"U9-f4Mosb_A"},{"title":"Deep Sleep Music: Deeper Relaxation","subtitle":"Jason Stephenson","image_url":"https://yt3.googleusercontent.com/izy-xwSTCCdIGhhIC-zIbatYKoQaIqf_lTHzscee2mvj5INnAPCEoqkPGBgcLjs4WSATb75kS8nECSv_=w120-h120-l90-rj","search_query":"Deep Sleep Music: Deeper Relaxation Jason Stephenson audio","audio_id":"yGi1MePEN-k"},{"title":"GUZARISH","subtitle":"JAVED ALI, A.R. RAHMAN, & PRASOON JOSHI","image_url":"https://yt3.googleusercontent.com/2rrBcBw8smJUdyTofOS7r9RZuOdhygYclvcP4HPS1JUVeK2j8DhCvMmbK45RTtoFKFux18GvUzYlPIg9=w120-h120-l90-rj","search_query":"GUZARISH JAVED ALI, A.R. RAHMAN, & PRASOON JOSHI audio","audio_id":"cK9h5PVzRpk"},{"title":"Ride It (Kya Yehi Pyaar Hai) (Hindi Version)","subtitle":"Jay Sean","image_url":"https://yt3.googleusercontent.com/fCdDJdUl6-q_r7o0Pkb6NbaRnna_YrVbxuI7aA6OaZ0RqAaHBFJ-g-thHZ-DPByXxk9gSWoOvYR5r0tz=w120-h120-l90-rj","search_query":"Ride It (Kya Yehi Pyaar Hai) (Hindi Version) Jay Sean audio","audio_id":"foEUtbLVBgw"},{"title":"Snooze","subtitle":"SZA","image_url":"https://yt3.googleusercontent.com/o3i9-dA34xDjbw1hz4nhJO6LA6V4-ZYjs_kh7aUA0sq1pieJejt_Hnor-Rxl77GA1ugAFqxcmEUwy3c=w120-h120-l90-rj","search_query":"Snooze SZA audio","audio_id":"ZqSlV5LmrTg"},{"title":"Me Gustas Tu","subtitle":"Manu chao","image_url":"https://yt3.googleusercontent.com/7Q6yaf9TgzaCA_oXzXoSVWzRxC5EqSN7ljJsXXBthpqkhhiBr4QQm2WhdMdh6KjCL25Ifsg8Ut4px95R=w120-h120-l90-rj","search_query":"Me Gustas Tu Manu chao audio","audio_id":"JmHXXf3p9lI"},{"title":"Buddha Lounge Bar Chillout","subtitle":"Palm Tree Lounge","image_url":"https://yt3.googleusercontent.com/76koNlViedq170zTiITqZTXYRLa20ubFc3Gb1k1yWNVk1PuiYHx__fv6Zu4X4cukZ71CKSvrzPmcfeDz=w120-h120-l90-rj","search_query":"Buddha Lounge Bar Chillout Palm Tree Lounge audio","audio_id":"sWSv2W82nLE"},{"title":"Sexy Saxophone Music","subtitle":"Jazz Lounge","image_url":"https://yt3.googleusercontent.com/hdFfLbdUJ-er9wzryv1Z4nnPna4CwggCdH8EnVDUJ9dCjC4xfxS7WLOP8Rs-c6ACNY1W_pZNawNSys7f=w120-h120-l90-rj","search_query":"Sexy Saxophone Music Jazz Lounge audio","audio_id":"ZF4G_d8jRfw"},{"title":"Sparks","subtitle":"Coldplay","image_url":"https://yt3.googleusercontent.com/7RK5kFu8RjjulsxsPCJ55wmJLchKaaIRAYih0ldj--RGbnOOdA0U2vmLWyVfjPW82nR-Dwm2r8PhEi61=w120-h120-l90-rj","search_query":"Sparks Coldplay audio","audio_id":"1aokooixKIo"},{"title":"DAISIES","subtitle":"Justin Bieber","image_url":"https://yt3.googleusercontent.com/3oJ4mIMkvYQyI_QDVsZYHdBRTGo-7rU4yNCJwIiIDhNGdquiZ9Arg9z_wCo50tUruOQP-fk-a2mgaz0=w120-h120-l90-rj","search_query":"DAISIES Justin Bieber audio","audio_id":"s5oSscNIyIs"},{"title":"Hours Relaxing Guitar Music, Meditation Music, Instrumental Music, Calming Music, Soft Music","subtitle":"Nature Sounds","image_url":"https://yt3.googleusercontent.com/bZgWdInM3xKZx_emk54joskFOprxdCHBx6s-vqZoT29vR9aN8Mw4squpT0_1UMa0lPnbeuXkV9PCxycw=w120-h120-l90-rj","search_query":"Hours Relaxing Guitar Music, Meditation Music, Instrumental Music, Calming Music, Soft Music Nature Sounds audio","audio_id":"kO1gvHp52l0"},{"title":"Space Song","subtitle":"Beach House","image_url":"https://yt3.googleusercontent.com/tfz2ujV-2YUBVvhUXdOnm6x8yuOWl_1gJwg-X_6sk4L7M4SYdIWBC7m33Tu6kTiqDfIcSAXncFoe8e4=w120-h120-l90-rj","search_query":"Space Song Beach House audio","audio_id":"4VX1P_X5ZvA"},{"title":"Lofi Chill","subtitle":"Sad Music","image_url":"https://yt3.googleusercontent.com/0bb5M66hQ4fXd277Bjxg2WJJIny9eUoT1vT0IdqwwYb4Prjt4oVS4t9NR6KdBrXpsrKN2hnNBpzYCkY3=w120-h120-l90-rj","search_query":"Lofi Chill Sad Music audio","audio_id":"h6TzXFARexQ"},{"title":"Leaves","subtitle":"Ben&Ben","image_url":"https://yt3.googleusercontent.com/y0Y08LgNcS9mIbfSaBUgee2udk447FxFEXgaO2uvvJiMgABu_88V6qnAViufAgRVH8fFRfwi3uI-xc4phQ=w120-h120-l90-rj","search_query":"Leaves Ben&Ben audio","audio_id":"WOQ1t_u8HTw"},{"title":"Who Knows","subtitle":"Daniel Caesar","image_url":"https://yt3.googleusercontent.com/geWLWl5Qe5z9oD38UbwlsGD4nHD10cT7aglW08XSWXNhD9NxF1OMTA_xyaBWpQwqxso8GVgbe8P-sgYX=w120-h120-l90-rj","search_query":"Who Knows Daniel Caesar audio","audio_id":"Wzn4BLtE73o"},{"title":"Young Dumb & Broke","subtitle":"Khalid","image_url":"https://yt3.googleusercontent.com/BUthLhfbO0pqRV151ph0lvSjQOFzmLmPAf9NUPLRws7P19-cV4L041AzFYsOgisAKxPdhJzLGCvExN7n=w120-h120-l90-rj","search_query":"Young Dumb & Broke Khalid audio","audio_id":"YhK2NwPIdt4"}],"trending_now":[{"title":"Levitating","subtitle":"Dua Lipa","image_url":"https://yt3.googleusercontent.com/UpJ_IhBqyhQV9b2UGcDxxWDm14kRQ2eY1o9S96AGsbE7Ol8isbpbPA0Yefvg8S8ZGAX9L1g4xaj21zVJ=w120-h120-l90-rj","search_query":"Levitating Dua Lipa audio","audio_id":"OsfAnsMY21M"},{"title":"Dilbar (From \"Satyameva Jayate\")","subtitle":"Neha Kakkar","image_url":"https://yt3.googleusercontent.com/_ca2n9jCBvM2xFYc90GBO7tsaSjxr1N6qMMvsWUzlSXaQMtJAKD7X-87kp5NQdP-0OluyBprEokkV7b5=w120-h120-l90-rj","search_query":"Dilbar (From \"Satyameva Jayate\") Neha Kakkar audio","audio_id":"7uSj-x6EIUE"},{"title":"Beauty And A Beat (feat. Nicki Minaj)","subtitle":"Justin Bieber","image_url":"https://yt3.googleusercontent.com/jXXzY2fTfxgr0_wR_I_V8W3Ai0L3ece217Biqm0tY36I9VAoce09xXmjgt8mXggTVgGGBHdJ3eAyICY=w120-h120-l90-rj","search_query":"Beauty And A Beat (feat. Nicki Minaj) Justin Bieber audio","audio_id":"aWkPBCF8rFU"},{"title":"Top Dance Hit 2026","subtitle":"Most Popular Internet Dance Song","image_url":"https://yt3.googleusercontent.com/WKOhNHcYjuRYSNM0isbkHA3yVzCMI7JBHANbrF8sH5mJDMEuXY0fBkc0hPd0FrvJRatv7gLTn0q8E2fY=w120-h120-l90-rj","search_query":"Top Dance Hit 2026 Most Popular Internet Dance Song audio","audio_id":"ycIkpy_0VIY"},{"title":"Dandelions","subtitle":"Ruth B.","image_url":"https://yt3.googleusercontent.com/ffIxiJuTfizhVr_0d8ZRYfwVGbx1IF4-yr4QYwq2AYc11fbghPvDnES4u9fhsOokYgmgtigwgMWoyLz0=w120-h120-l90-rj","search_query":"Dandelions Ruth B. audio","audio_id":"HZbsLxL7GeM"},{"title":"Kesariya (From \"Brahmastra\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/CH0SThQN0HOk2eV81GGA-Tiftn58G48iy8lEyKNXJjbDSI9ApKKnmt4ncwr5gO_mZoQvFF3HPfHtky1Y=w120-h120-l90-rj","search_query":"Kesariya (From \"Brahmastra\") Arijit Singh audio","audio_id":"NJAv_7lHUIU"},{"title":"Señorita","subtitle":"Shawn Mendes","image_url":"https://yt3.googleusercontent.com/TK-09E9wZOUk84ktqwb-zNBXfnY3Z927d3fpJ3ObwwOyREKzjAQMMYx0pGSjVAAV2zpRJDpDAavlAPSz=w120-h120-l90-rj","search_query":"Señorita Shawn Mendes audio","audio_id":"VKC_hzJ3jzg"},{"title":"On The Floor (Radio Edit)","subtitle":"Jennifer Lopez","image_url":"https://yt3.googleusercontent.com/2vLwLTzlPYPnHuOqkxNFEH6rFM8U3EgEr3VU3BRr_oRPAWLupLX8krNspzikiHGkmcJxIGZk-aJBjTcM=w120-h120-l90-rj","search_query":"On The Floor (Radio Edit) Jennifer Lopez audio","audio_id":"gDRL47NzG5o"},{"title":"Snooze","subtitle":"SZA","image_url":"https://yt3.googleusercontent.com/o3i9-dA34xDjbw1hz4nhJO6LA6V4-ZYjs_kh7aUA0sq1pieJejt_Hnor-Rxl77GA1ugAFqxcmEUwy3c=w120-h120-l90-rj","search_query":"Snooze SZA audio","audio_id":"ZqSlV5LmrTg"},{"title":"死ぬのがいいわ - Shinunoga E-Wa","subtitle":"Fujii Kaze","image_url":"https://yt3.googleusercontent.com/R4k8Fj3T1Y-LvlSrMIY6ekpKg5OviQqzaNTq4WoL2QHwBjc6C0CHOMl7R8Kbdyj8atWWkpsYi1HPCbnU=w120-h120-l90-rj","search_query":"死ぬのがいいわ - Shinunoga E-Wa Fujii Kaze audio","audio_id":"3zh9Wb1KuW8"},{"title":"Party Mashup - DJ Praveen - Nonie","subtitle":"Shruti Rane","image_url":"https://yt3.googleusercontent.com/f3OdRXy0RIhGAU27oq7Zjs0qXnv34lNDoG0zX_g2jPNyKESyqaDp-lcupVAiNr1gZxGY374A3rU801OG=w120-h120-l90-rj","search_query":"Party Mashup - DJ Praveen - Nonie Shruti Rane audio","audio_id":"5XTxuz-_myg"},{"title":"Shape of You","subtitle":"Ed Sheeran","image_url":"https://yt3.googleusercontent.com/TMbA3LImAL96nFkm5cI1x6LiEMvMbRg4IRxEeABd9qpXsfmwKhZHRD1MucnjG5QIsVEp0Vpn7h7M51FH3Q=w120-h120-l90-rj","search_query":"Shape of You Ed Sheeran audio","audio_id":"xTvyyoF_LZY"},{"title":"O Saki Saki (From \"Batla House\")","subtitle":"Neha Kakkar","image_url":"https://yt3.googleusercontent.com/ZtswlruNtJ3pRZKZdYyf2l7FMPcu8MN9IhtoVIoFan8erqKTifrVbYyLSJ1h8QoGpk0r1bh-sygRJcM1=w120-h120-l90-rj","search_query":"O Saki Saki (From \"Batla House\") Neha Kakkar audio","audio_id":"FhiAn9wKqgQ"},{"title":"Homewrecker","subtitle":"sombr","image_url":"https://yt3.googleusercontent.com/j75nRhWXJf_EUFoIz6KZ4KzBBGvSv6lAHVSjoofP7ndFBwOlvYGDeZ-c0uN2hEyDUPfk5u6AlriKNI4=w120-h120-l90-rj","search_query":"Homewrecker sombr audio","audio_id":"E9onENVBmKY"},{"title":"Habibi (Albanian Remix)","subtitle":"Ricky Rich","image_url":"https://yt3.googleusercontent.com/Wp1Cl8ShgJPA1F3DXeq5K60d7zD4McArx9OAnWJSPJL9-ITjQ-wZA7Wfu0ZEKewT39GIs8pncIsrMQ=w120-h120-l90-rj","search_query":"Habibi (Albanian Remix) Ricky Rich audio","audio_id":"9XsXJpYc7pU"},{"title":"R.I.O. Megamix (Continuous DJ Mix)","subtitle":"R.I.O.","image_url":"https://yt3.googleusercontent.com/Fcmaq8vcoAmAGfoUJQBI4J0Ya0QK4PusXPa6biK1q0LeUh2RtftFSp1WU6vjpuol_e2HIRgX_lVBsRM=w120-h120-l90-rj","search_query":"R.I.O. Megamix (Continuous DJ Mix) R.I.O. audio","audio_id":"iK-N9lhKv-A"},{"title":"Sun is up","subtitle":"INNA","image_url":"https://yt3.googleusercontent.com/igKAlmIcq6djWn16NwgU4wX8scuqbxWiJgYRD1Al8VjNQmlVgQnjI9gxVdYv0bXc2IakiluDmFYLrpnEqg=w120-h120-l90-rj","search_query":"Sun is up INNA audio","audio_id":"TdYNDCME8pc"},{"title":"drunk text","subtitle":"Henry Moodie","image_url":"https://yt3.googleusercontent.com/ohQ5w6Hpo4U2Nk8tGglpFqgsCNshy183gcKm08K8XnkYo32p1IqWY84K_5WvOaYoarTW2qCachlPCVAEgA=w120-h120-l90-rj","search_query":"drunk text Henry Moodie audio","audio_id":"bokJfDZCzNk"},{"title":"Apna Bana Le (From \"Bhediya\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/EqN-4y9jQg91mt-94KKI8L1xu3olMS-Fh_WLL5tMlnqh1pSRzt-uWdnTVlY_GBnvLuA_WJmS6FYAXJlZtQ=w120-h120-l90-rj","search_query":"Apna Bana Le (From \"Bhediya\") Arijit Singh audio","audio_id":"YALvuUpY_b0"},{"title":"My Jesus | Top Easter Worship Songs 2026 | Powerful Christian Praise","subtitle":"Hazel Aria","image_url":"https://yt3.googleusercontent.com/ui8D6YORy5Jo6iQdKxWiX9oWgNWzs1voYx7HSqKkijLWSCVzv0BGs4HLCVyWvXm2r5ilwStYnUmH8Zl_dA=w120-h120-l90-rj","search_query":"My Jesus | Top Easter Worship Songs 2026 | Powerful Christian Praise Hazel Aria audio","audio_id":"1HMREZDMk_E"}],"new_releases":[{"title":"Apna Bana Le (From \"Bhediya\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/EqN-4y9jQg91mt-94KKI8L1xu3olMS-Fh_WLL5tMlnqh1pSRzt-uWdnTVlY_GBnvLuA_WJmS6FYAXJlZtQ=w120-h120-l90-rj","search_query":"Apna Bana Le (From \"Bhediya\") Arijit Singh audio","audio_id":"YALvuUpY_b0"},{"title":"Headliner","subtitle":"Navaan Sandhu & Haakam","image_url":"https://yt3.googleusercontent.com/cK3YXbliLmz5qsrAQp9ohIhty2KLaDsWzD72wi2iiG5KygkpKU8ltlylIOOi5hJHty-g3VSfbnoP5tNx=w120-h120-l90-rj","search_query":"Headliner Navaan Sandhu & Haakam audio","audio_id":"I71U6I7NfZQ"},{"title":"Putt Jam Te Lau","subtitle":"Prem Dhillon","image_url":"https://yt3.googleusercontent.com/QvQTMxB5p-xG7ULzrVq5dguWnF4Bu3IAB_paMrTyUCjv8HGaNAgkqQBC5vJPzo9EjtYhVsPP8U96tYQY=w120-h120-l90-rj","search_query":"Putt Jam Te Lau Prem Dhillon audio","audio_id":"zqay9kQlSOE"},{"title":"Trucker","subtitle":"Arjan Dhillon","image_url":"https://yt3.googleusercontent.com/VQAGYmGtGLTZCQHz4M3G5zpMuxq9JdG5Yh-myD6g3nHimXf1yBVR88_9SSXzFF4GyKP9_j63wPwAq_fCrA=w120-h120-l90-rj","search_query":"Trucker Arjan Dhillon audio","audio_id":"idrFtnYdVEk"},{"title":"Made for This Shi","subtitle":"Prem Dhillon","image_url":"https://yt3.googleusercontent.com/QvQTMxB5p-xG7ULzrVq5dguWnF4Bu3IAB_paMrTyUCjv8HGaNAgkqQBC5vJPzo9EjtYhVsPP8U96tYQY=w120-h120-l90-rj","search_query":"Made for This Shi Prem Dhillon audio","audio_id":"FCbb-NQIXkM"},{"title":"Starboy (feat. Daft Punk)","subtitle":"The Weeknd","image_url":"https://yt3.googleusercontent.com/dcxXIIlest09vnvKznWM9VWQXu1EL7lKxBzXGzwgmVjmMNBm1dEWT_0qn1xrEZYyKF_qRE1TLq8P_JY_mQ=w120-h120-l90-rj","search_query":"Starboy (feat. Daft Punk) The Weeknd audio","audio_id":"3_g2un5M350"},{"title":"Infinity","subtitle":"Jaymes Young","image_url":"https://yt3.googleusercontent.com/LbZKx1BIBurqckj_RjLVEDkXGaxGcVk4hqUFqGeegBtnnRU2jNJuHSu8VGk9ASPzpsdlsnaE0MItobQ=w120-h120-l90-rj","search_query":"Infinity Jaymes Young audio","audio_id":"WMK3JXG3Fx0"},{"title":"Bahut Nede (From \"Annhi Dea Mazaak Ae\")","subtitle":"Amrinder Gill","image_url":"https://yt3.googleusercontent.com/rQz5SMLjt8suOmFAsJoJ8pGJis-0Geh6Xun2r5ETSohBLSMsN0dGgnfjQK18hrdZ0FDkNsk5feo-_Bg=w120-h120-l90-rj","search_query":"Bahut Nede (From \"Annhi Dea Mazaak Ae\") Amrinder Gill audio","audio_id":"aE9-HJmokIw"},{"title":"Blinding Lights","subtitle":"The Weeknd","image_url":"https://yt3.googleusercontent.com/R_cjQK3wwLPEzri1jerx-79zgzGocoKvwGU3NMONaTsaMM0Idd641pfB8r5jgfpn6I8JAoFtf9RBIcI=w120-h120-l90-rj","search_query":"Blinding Lights The Weeknd audio","audio_id":"J7p4bzqLvCw"},{"title":"Jail (feat. Jayy Randhawa)","subtitle":"Deepak Dhillon","image_url":"https://yt3.googleusercontent.com/fpmH43fyIbImqnCR4z7VNzAsy-bjYDwYucJU2bfEu-hurm9nn9kxvr_OBLmLB05h6BePSHWBgo2r5Rw=w120-h120-l90-rj","search_query":"Jail (feat. Jayy Randhawa) Deepak Dhillon audio","audio_id":"KefwVkOUYPU"},{"title":"Asla","subtitle":"Sippy Gill","image_url":"https://yt3.googleusercontent.com/Qwj8UmNETtQhH9jMfEYUpD_YlEoYCTc0R0QOXEQO_ABOzg8VN22zscrGnRvcff3mpbxV7YiIFfECFs1u=w120-h120-l90-rj","search_query":"Asla Sippy Gill audio","audio_id":"Z_QWLClLxvk"},{"title":"Bodyguard","subtitle":"Navaan Sandhu, Param, & Haakam","image_url":"https://yt3.googleusercontent.com/cK3YXbliLmz5qsrAQp9ohIhty2KLaDsWzD72wi2iiG5KygkpKU8ltlylIOOi5hJHty-g3VSfbnoP5tNx=w120-h120-l90-rj","search_query":"Bodyguard Navaan Sandhu, Param, & Haakam audio","audio_id":"prgkbPjuODo"},{"title":"New Number","subtitle":"EST Gee","image_url":"https://yt3.googleusercontent.com/3gV8vy_SM_jFe8_y02i9E535lsbFpAya1zZYGiMC4sxOjBTfExaVoNvSXRFd2LuGcFtpmu0tbSCE9JVzMA=w120-h120-l90-rj","search_query":"New Number EST Gee audio","audio_id":"NWMtFgdYIHs"},{"title":"Wang Da Naap (feat. Sonam Bajwa)","subtitle":"Ammy Virk","image_url":"https://yt3.googleusercontent.com/lYRZfLM2IkJjy0r1poLL7QLMHEzlXmdvoetonSZBoReHgOerrWV0SCIJqmSWHbbcG0PUoFyhUPm8hsHo=w120-h120-l90-rj","search_query":"Wang Da Naap (feat. Sonam Bajwa) Ammy Virk audio","audio_id":"bpXyk6sxsh4"},{"title":"Kesariya (From \"Brahmastra\")","subtitle":"Arijit Singh","image_url":"https://yt3.googleusercontent.com/CH0SThQN0HOk2eV81GGA-Tiftn58G48iy8lEyKNXJjbDSI9ApKKnmt4ncwr5gO_mZoQvFF3HPfHtky1Y=w120-h120-l90-rj","search_query":"Kesariya (From \"Brahmastra\") Arijit Singh audio","audio_id":"NJAv_7lHUIU"},{"title":"NOTHIN","subtitle":"Prem Dhillon","image_url":"https://yt3.googleusercontent.com/QvQTMxB5p-xG7ULzrVq5dguWnF4Bu3IAB_paMrTyUCjv8HGaNAgkqQBC5vJPzo9EjtYhVsPP8U96tYQY=w120-h120-l90-rj","search_query":"NOTHIN Prem Dhillon audio","audio_id":"ZLBQ4Mo5O5Q"},{"title":"Yaara ve yaara","subtitle":"Navaan Sandhu","image_url":"https://yt3.googleusercontent.com/cK3YXbliLmz5qsrAQp9ohIhty2KLaDsWzD72wi2iiG5KygkpKU8ltlylIOOi5hJHty-g3VSfbnoP5tNx=w120-h120-l90-rj","search_query":"Yaara ve yaara Navaan Sandhu audio","audio_id":"liSD3ua45aE"},{"title":"UNDER COVER","subtitle":"Prem Dhillon","image_url":"https://yt3.googleusercontent.com/QvQTMxB5p-xG7ULzrVq5dguWnF4Bu3IAB_paMrTyUCjv8HGaNAgkqQBC5vJPzo9EjtYhVsPP8U96tYQY=w120-h120-l90-rj","search_query":"UNDER COVER Prem Dhillon audio","audio_id":"o4ajqbZf-is"},{"title":"Chann Sitare (From \"Oye Makhna\")","subtitle":"Ammy Virk","image_url":"https://yt3.googleusercontent.com/NjEV0dqbFWXfaX4TprNew8XQj21LGEkfA38of1sDOA-PoKSRMwvXjzCs0Jn0iQfaAXLKPflylLTpqiMh=w120-h120-l90-rj","search_query":"Chann Sitare (From \"Oye Makhna\") Ammy Virk audio","audio_id":"xjoat5I-1FI"},{"title":"London","subtitle":"Prem Dhillon","image_url":"https://yt3.googleusercontent.com/QvQTMxB5p-xG7ULzrVq5dguWnF4Bu3IAB_paMrTyUCjv8HGaNAgkqQBC5vJPzo9EjtYhVsPP8U96tYQY=w120-h120-l90-rj","search_query":"London Prem Dhillon audio","audio_id":"G-otFISMT1E"}],"news":[{"category":"EVENT","title":"Coachella 2026 Lineup","subtitle":"Headliners announced today...","image_url":"https://images.unsplash.com/photo-1459749411175-04bf5292ceea"},{"category":"TECH","title":"AI Audio Separation","subtitle":"Extract vocals directly on device...","image_url":"https://images.unsplash.com/photo-1598488035139-bdbb2231ce04"}]}
+\ No newline at end of file
+diff --git a/vespera_backend/scratch/test_ytmusic.py b/vespera_backend/scratch/test_ytmusic.py
+deleted file mode 100644
+index 8d9d635..0000000
+--- a/vespera_backend/scratch/test_ytmusic.py
++++ /dev/null
+@@ -1,9 +0,0 @@
+-from ytmusicapi import YTMusic
+-import json
+-
+-try:
+-    yt = YTMusic()
+-    results = yt.search("Top Hits", filter="songs", limit=3)
+-    print(json.dumps(results, indent=2))
+-except Exception as e:
+-    print(f"Error: {e}")
+diff --git a/vespera_backend/test_yt.py b/vespera_backend/test_yt.py
+deleted file mode 100644
+index 21e5924..0000000
+--- a/vespera_backend/test_yt.py
++++ /dev/null
+@@ -1,13 +0,0 @@
+-import asyncio
+-from youtubesearchpython.__future__ import VideosSearch
+-
+-async def test():
+-    try:
+-        videos_search = VideosSearch("test", limit=1)
+-        results = await videos_search.next()
+-        print(results)
+-    except Exception as e:
+-        print(f"Error: {e}")
+-
+-if __name__ == "__main__":
+-    asyncio.run(test())
+diff --git a/vespera_backend/test_yt_backend.py b/vespera_backend/test_yt_backend.py
+deleted file mode 100644
+index b635665..0000000
+--- a/vespera_backend/test_yt_backend.py
++++ /dev/null
+@@ -1,25 +0,0 @@
+-from ytmusicapi import YTMusic
+-
+-try:
+-    yt = YTMusic()
+-    print("Searching for 'Top Hits'...")
+-    results = yt.search("Top Hits", filter="songs", limit=5)
+-    print(f"Songs found: {len(results)}")
+-    for r in results:
+-        print(f"- {r['title']} by {r['artists'][0]['name']}")
+-    
+-    print("\nSearching for 'Pop' playlists...")
+-    results = yt.search("Pop", filter="playlists", limit=5)
+-    print(f"Playlists found: {len(results)}")
+-    for r in results:
+-        print(f"- {r['title']}")
+-
+-    print("\nGetting charts...")
+-    try:
+-        charts = yt.get_charts(country='US')
+-        print(f"Charts found. Songs count: {len(charts.get('songs', {}).get('items', []))}")
+-    except Exception as e:
+-        print(f"Charts failed: {e}")
+-
+-except Exception as e:
+-    print(f"Error: {e}")
+diff --git a/vespera_backend/test_yt_groq.py b/vespera_backend/test_yt_groq.py
+deleted file mode 100644
+index a8fb8d9..0000000
+--- a/vespera_backend/test_yt_groq.py
++++ /dev/null
+@@ -1,18 +0,0 @@
+-import asyncio
+-from youtubesearchpython.__future__ import VideosSearch
+-from groq import Groq
+-import os
+-
+-async def test():
+-    try:
+-        # Initialize Groq (but don't necessarily call it)
+-        client = Groq(api_key=os.environ.get("GROQ_API_KEY", "mock_key_for_testing"))
+-        
+-        videos_search = VideosSearch("test", limit=1)
+-        results = await videos_search.next()
+-        print(results)
+-    except Exception as e:
+-        print(f"Error: {e}")
+-
+-if __name__ == "__main__":
+-    asyncio.run(test())
+diff --git a/vespera_backend/tests/test_feeds.py b/vespera_backend/tests/test_feeds.py
+new file mode 100644
+index 0000000..b229d98
+--- /dev/null
++++ b/vespera_backend/tests/test_feeds.py
+@@ -0,0 +1,162 @@
++import pathlib
++from datetime import datetime, timezone
++
++import pytest
++import pytest_asyncio
++from httpx import ASGITransport, AsyncClient
++from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
++
++import app.infrastructure.models  # noqa: F401  (registers tables)
++from app.infrastructure.database import Base, get_db
++from app.infrastructure.models import CatalogTrackIndex
++
++_engine = create_async_engine("sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False})
++_Session = async_sessionmaker(_engine, expire_on_commit=False, autoflush=False)
++
++
++def _row(track_id: str, title: str, artist: str, tags: list[str], eligible: bool = True) -> CatalogTrackIndex:
++    return CatalogTrackIndex(
++        track_id=track_id,
++        title=title,
++        artist=artist,
++        image_url=f"https://img.example/{track_id}.jpg",
++        audio_url=f"https://audio.example/{track_id}.mp3" if eligible else None,
++        jamendo_share_url=f"https://www.jamendo.com/track/{track_id}",
++        playable_ms=180_000 if eligible else 0,
++        session_eligible=eligible,
++        instrumental_label="instrumental" if eligible else None,
++        license="by",
++        tags_text=" ".join(tags),
++        search_text=" ".join([title, artist, *tags]).lower(),
++        catalog_version="t1",
++        indexed_at=datetime.now(timezone.utc),
++    )
++
++
++@pytest_asyncio.fixture
++async def session():
++    async with _engine.begin() as conn:
++        await conn.run_sync(Base.metadata.create_all)
++    async with _Session() as s:
++        yield s
++    async with _engine.begin() as conn:
++        await conn.run_sync(Base.metadata.drop_all)
++
++
++@pytest_asyncio.fixture
++async def client(session):
++    from main import app
++
++    async def _override():
++        yield session
++
++    app.dependency_overrides[get_db] = _override
++    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
++        yield ac
++    app.dependency_overrides.clear()
++
++
++@pytest_asyncio.fixture
++async def seeded(session):
++    session.add_all(
++        [
++            _row("1", "Slow Rain", "Aria", ["ambient", "piano", "calm"]),
++            _row("2", "Night Study", "Bram", ["ambient", "piano"]),
++            _row("3", "Deep Focus", "Cleo", ["ambient", "calm"]),
++            _row("4", "100% Pure_Tone", "Dax", ["drone"]),
++            _row("5", "Restricted Track", "Eli", ["ambient", "piano", "calm"], eligible=False),
++        ]
++    )
++    await session.commit()
++
++
++@pytest.mark.asyncio
++async def test_home_feed_only_returns_playable_catalog_tracks(client, seeded):
++    body = (await client.get("/api/v1/home_feed", headers={"local-time": "19:30"})).json()
++    assert body["greeting"] == "Good evening"
++    picks = body["quick_picks"]
++    assert {p["audio_id"] for p in picks} == {"1", "2", "3", "4"}
++    assert all(p["session_eligible"] and p["audio_url"] for p in picks)
++    assert all(p["jamendo_share_url"] for p in picks)
++
++
++@pytest.mark.asyncio
++async def test_home_feed_does_not_invent_sections(client, seeded):
++    body = (await client.get("/api/v1/home_feed")).json()
++    for key in ("rankings", "jump_back_in", "trending_now", "new_releases", "news"):
++        assert body[key] == [], key
++
++
++@pytest.mark.asyncio
++async def test_home_collections_are_tag_groups_with_enough_tracks(client, seeded):
++    cards = (await client.get("/api/v1/home_feed")).json()["popular_playlists"]
++    titles = {c["title"]: c for c in cards}
++    assert titles["Ambient"]["subtitle"] == "3 tracks"       # the ineligible track is excluded
++    assert "Drone" not in titles                              # fewer than 3 tracks
++    assert titles["Ambient"]["audio_url"].startswith("https://audio.example/")
++
++
++@pytest.mark.asyncio
++async def test_quick_picks_are_stable_between_calls(client, seeded):
++    first = (await client.get("/api/v1/home_feed")).json()["quick_picks"]
++    second = (await client.get("/api/v1/home_feed")).json()["quick_picks"]
++    assert [p["audio_id"] for p in first] == [p["audio_id"] for p in second]
++
++
++@pytest.mark.asyncio
++@pytest.mark.parametrize(
++    "header,expected",
++    [("08:15", "Good morning"), ("2026-11-15T14:00:00", "Good afternoon"),
++     ("7:05 PM", "Good evening"), ("9:05 PM", "Good late night"), ("12:30 AM", "Good late night")],
++)
++async def test_greeting_follows_device_time(client, header, expected):
++    body = (await client.get("/api/v1/home_feed", headers={"local-time": header})).json()
++    assert body["greeting"] == expected
++
++
++@pytest.mark.asyncio
++async def test_empty_catalog_returns_empty_valid_feeds(client):
++    home = (await client.get("/api/v1/home_feed")).json()
++    assert home["quick_picks"] == [] and home["popular_playlists"] == []
++    assert home["ai_message"] == "No tracks are available yet."
++    explore = (await client.get("/api/v1/explore_feed")).json()
++    assert explore["categories"] == []
++    assert (await client.get("/api/v1/search", params={"query": "rain"})).json() == []
++
++
++@pytest.mark.asyncio
++async def test_explore_categories_come_from_real_tags(client, seeded):
++    body = (await client.get("/api/v1/explore_feed")).json()
++    assert body["categories"][0] == "Ambient"
++    assert body["trending_events"] == [] and body["personalized_mixes"] == []
++
++
++@pytest.mark.asyncio
++async def test_search_matches_all_terms_and_skips_ineligible(client, seeded):
++    hits = (await client.get("/api/v1/search", params={"query": "ambient piano"})).json()
++    assert {h["audio_id"] for h in hits} == {"1", "2"}
++    assert (await client.get("/api/v1/search", params={"query": "restricted"})).json() == []
++
++
++@pytest.mark.asyncio
++async def test_search_treats_like_wildcards_literally(client, seeded):
++    assert (await client.get("/api/v1/search", params={"query": "%"})).json() != []  # literal % exists in a title
++    assert (await client.get("/api/v1/search", params={"query": "zzz%"})).json() == []
++    assert [h["audio_id"] for h in (await client.get("/api/v1/search", params={"query": "pure_tone"})).json()] == ["4"]
++    assert (await client.get("/api/v1/search", params={"query": "pure_xone"})).json() == []
++
++
++@pytest.mark.asyncio
++async def test_search_blank_query_and_playlist_mode(client, seeded):
++    assert (await client.get("/api/v1/search", params={"query": "   "})).json() == []
++    cards = (await client.get("/api/v1/search", params={"query": "amb", "search_type": "playlists"})).json()
++    assert [c["title"] for c in cards] == ["Ambient"]
++
++
++def test_legacy_stack_is_gone():
++    app_dir = pathlib.Path(__file__).parent.parent / "app"
++    assert not (app_dir / "legacy" / "__init__.py").exists()
++    assert not (app_dir / "services" / "pinecone_db.py").exists()
++    requirements = (pathlib.Path(__file__).parent.parent / "requirements.txt").read_text().lower()
++    for package in ("spotipy", "ytmusicapi", "youtube-search-python", "pinecone"):
++        assert package not in requirements
+diff --git a/vespera_backend/upload_songs.py b/vespera_backend/upload_songs.py
+deleted file mode 100644
+index 7a63350..0000000
+--- a/vespera_backend/upload_songs.py
++++ /dev/null
+@@ -1,74 +0,0 @@
+-import os
+-import requests
+-from pinecone import Pinecone
+-from dotenv import load_dotenv
+-
+-load_dotenv()
+-
+-# Config
+-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+-PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "vespera-index")
+-HF_TOKEN = os.getenv("HF_TOKEN")
+-
+-# Initialize Pinecone
+-pc = Pinecone(api_key=PINECONE_API_KEY)
+-
+-def get_hf_embedding(text: str):
+-    model_id = "sentence-transformers/all-MiniLM-L6-v2"
+-    api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_id}"
+-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+-    response = requests.post(api_url, headers=headers, json={"inputs": [text]})
+-    if response.status_code == 200:
+-        return response.json()[0]
+-    raise Exception(f"HF Error: {response.text}")
+-
+-def create_index_if_not_exists():
+-    if PINECONE_INDEX_NAME not in pc.list_indexes().names():
+-        print(f"Creating index {PINECONE_INDEX_NAME}...")
+-        pc.create_index(
+-            name=PINECONE_INDEX_NAME,
+-            dimension=384, # all-MiniLM-L6-v2 dimension
+-            metric="cosine",
+-            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}}
+-        )
+-        print("Index created successfully.")
+-    else:
+-        print(f"Index {PINECONE_INDEX_NAME} already exists.")
+-
+-def upload_sample_songs():
+-    index = pc.Index(PINECONE_INDEX_NAME)
+-    
+-    songs = [
+-        {"id": "1", "title": "Starboy", "artist": "The Weeknd", "genre": "Pop", "bpm": 186, "vibe": "Energetic, Dark, Night"},
+-        {"id": "2", "title": "Blinding Lights", "artist": "The Weeknd", "genre": "Synth-pop", "bpm": 171, "vibe": "High Energy, Retro, Driving"},
+-        {"id": "3", "title": "In Your Eyes", "artist": "The Weeknd", "genre": "R&B", "bpm": 100, "vibe": "Smooth, Romantic, Evening"},
+-        {"id": "4", "title": "Save Your Tears", "artist": "The Weeknd", "genre": "Pop", "bpm": 118, "vibe": "Melancholic, Groovy, Sunset"},
+-        {"id": "5", "title": "Midnight City", "artist": "M83", "genre": "Electronic", "bpm": 105, "vibe": "Cinematic, Night, Uplifting"}
+-    ]
+-    
+-    print("Uploading songs to Pinecone...")
+-    vectors = []
+-    for song in songs:
+-        embedding = get_hf_embedding(f"{song['title']} {song['artist']} {song['genre']} {song['vibe']}")
+-        vectors.append({
+-            "id": song["id"],
+-            "values": embedding,
+-            "metadata": {
+-                "title": song["title"],
+-                "artist": song["artist"],
+-                "genre": song["genre"],
+-                "bpm": song["bpm"],
+-                "image_url": f"https://picsum.photos/seed/{song['id']}/400/400"
+-            }
+-        })
+-    
+-    index.upsert(vectors=vectors)
+-    print("Done! Database populated with sample songs.")
+-
+-if __name__ == "__main__":
+-    if not HF_TOKEN or not PINECONE_API_KEY:
+-        print("Please set your API keys in .env first!")
+-    else:
+-        create_index_if_not_exists()
+-        upload_sample_songs()
+-- 
+2.43.0
+

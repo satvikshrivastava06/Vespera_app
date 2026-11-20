@@ -1,0 +1,546 @@
+From 1278e1841548f739e9c246f303b6df47b7c4703b Mon Sep 17 00:00:00 2001
+From: review <r@x>
+Date: Fri, 20 Nov 2026 12:44:18 +0000
+Subject: [PATCH 1/2] Harden rate limiting, fix /health (AttributeError on
+ seeded catalog, 503 on DB failure)
+
+---
+ vespera_backend/app/api/auth.py               |   4 +
+ vespera_backend/app/api/twilight.py           |   8 +-
+ .../app/infrastructure/rate_limit.py          |  98 +++++++++------
+ vespera_backend/main.py                       |  79 ++++++------
+ vespera_backend/render.yaml                   |   2 +
+ vespera_backend/tests/conftest.py             |  18 +--
+ vespera_backend/tests/test_health.py          |  83 ++++++++++++
+ vespera_backend/tests/test_rate_limit.py      | 119 ++++++++++++++++++
+ 8 files changed, 322 insertions(+), 89 deletions(-)
+ create mode 100644 vespera_backend/tests/test_health.py
+ create mode 100644 vespera_backend/tests/test_rate_limit.py
+
+diff --git a/vespera_backend/app/api/auth.py b/vespera_backend/app/api/auth.py
+index b7ed0c0..4e96232 100644
+--- a/vespera_backend/app/api/auth.py
++++ b/vespera_backend/app/api/auth.py
+@@ -31,5 +31,9 @@ async def bootstrap_anonymous_token(
+     subsequent requests in the ``X-Device-Token`` header.
+     """
+     await check_rate_limit(request, "auth_anonymous", max_calls=5, window_seconds=60)
++    # Spoof-proof ceiling on token minting, independent of the caller's IP.
++    await check_rate_limit(
++        request, "auth_anonymous_global", max_calls=120, window_seconds=3600, key="global"
++    )
+     raw_token, user_id = await create_anonymous_token(db)
+     return AnonymousTokenResponse(token=raw_token, user_id=user_id)
+diff --git a/vespera_backend/app/api/twilight.py b/vespera_backend/app/api/twilight.py
+index 676fd58..70ed21a 100644
+--- a/vespera_backend/app/api/twilight.py
++++ b/vespera_backend/app/api/twilight.py
+@@ -67,7 +67,13 @@ async def twilight_agent(
+     device: DeviceToken = Depends(_require_device),
+     db: AsyncSession = Depends(get_db),
+ ) -> TwilightResponse:
+-    await check_rate_limit(request, "twilight_agent", max_calls=20, window_seconds=60)
++    await check_rate_limit(
++        request, "twilight_agent", max_calls=20, window_seconds=60, key=device.user_id
++    )
++    # Global ceiling bounds LLM spend even if many tokens are minted.
++    await check_rate_limit(
++        request, "twilight_agent_global", max_calls=60, window_seconds=60, key="global"
++    )
+     trace_id = str(uuid.uuid4())
+     request_id = body.request_id or str(uuid.uuid4())
+     text = body.text.strip()
+diff --git a/vespera_backend/app/infrastructure/rate_limit.py b/vespera_backend/app/infrastructure/rate_limit.py
+index 600e862..82527da 100644
+--- a/vespera_backend/app/infrastructure/rate_limit.py
++++ b/vespera_backend/app/infrastructure/rate_limit.py
+@@ -1,24 +1,57 @@
+-"""Simple in-memory rate limiter for auth and Twilight endpoints.
++"""Per-endpoint rate limiting for public routes.
+ 
+-Uses a sliding-window counter per (IP, endpoint) key. Production deployments
+-behind a proxy must set uvicorn --proxy-headers so request.client.host reflects
+-the real client IP (X-Forwarded-For), not the proxy's internal address.
++In-process and single-worker only: every uvicorn worker keeps its own counters.
++
++Environment:
++  RATE_LIMIT_ENABLED  "true" (default) or "false". Read on every call.
++  TRUSTED_PROXY_HOPS  0 (default): use the socket peer address.
++                      n > 0: use the n-th entry counted from the RIGHT of
++                      X-Forwarded-For, i.e. the address your own platform proxy
++                      appended. Entries to its left are client-supplied and are
++                      never trusted.
+ """
+ 
+ from __future__ import annotations
+ 
++import logging
+ import os
+-import time
+-from collections import defaultdict
+-from typing import DefaultDict, Tuple
+ 
+ from fastapi import HTTPException, Request
+ 
+-# {(ip, endpoint): [(timestamp, count), ...]}
+-_calls: DefaultDict[Tuple[str, str], list[Tuple[float, int]]] = defaultdict(list)
++from app.infrastructure.limiter import SlidingWindowLimiter
++
++log = logging.getLogger("vespera.rate_limit")
++
++_limiters: dict[tuple[str, int, int], SlidingWindowLimiter] = {}
++
++
++def _enabled() -> bool:
++    return os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "true"
++
++
++def _proxy_hops() -> int:
++    try:
++        return max(0, int(os.environ.get("TRUSTED_PROXY_HOPS", "0") or 0))
++    except ValueError:
++        return 0
++
+ 
+-# Allow tests to bypass rate limiting
+-_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "true"
++def client_ip(request: Request) -> str:
++    hops = _proxy_hops()
++    if hops:
++        forwarded = [
++            part.strip()
++            for part in request.headers.get("x-forwarded-for", "").split(",")
++            if part.strip()
++        ]
++        if len(forwarded) >= hops:
++            return forwarded[-hops]
++    return request.client.host if request.client else "unknown"
++
++
++def reset_rate_limits() -> None:
++    """Clear all counters (used by tests)."""
++    _limiters.clear()
+ 
+ 
+ async def check_rate_limit(
+@@ -26,38 +59,23 @@ async def check_rate_limit(
+     endpoint: str,
+     max_calls: int,
+     window_seconds: int,
++    key: str | None = None,
+ ) -> None:
+-    """Raise HTTPException 429 if (client_ip, endpoint) exceeded max_calls in the window.
+-
+-    Args:
+-        request: FastAPI request containing client IP
+-        endpoint: Unique identifier for this rate-limited endpoint
+-        max_calls: Maximum allowed calls in the window
+-        window_seconds: Sliding window size in seconds
+-
+-    Raises:
+-        HTTPException: 429 Too Many Requests if limit exceeded
+-    """
+-    if not _ENABLED:
++    """Raise 429 when ``key`` (default: the caller's IP) exceeds the limit for ``endpoint``."""
++    if not _enabled():
+         return
+-    
+-    client_ip = request.client.host if request.client else "unknown"
+-    key = (client_ip, endpoint)
+-    now = time.time()
+-    cutoff = now - window_seconds
+-
+-    # Remove expired entries
+-    _calls[key] = [(ts, cnt) for ts, cnt in _calls[key] if ts > cutoff]
+-
+-    # Count recent calls
+-    total = sum(cnt for _, cnt in _calls[key])
+-
+-    if total >= max_calls:
++    limiter = _limiters.setdefault(
++        (endpoint, max_calls, window_seconds),
++        SlidingWindowLimiter(max_calls, window_seconds),
++    )
++    subject = key if key is not None else client_ip(request)
++    if not limiter.allow(subject):
++        log.warning(
++            "Rate limit hit endpoint=%s subject=%s x-forwarded-for=%r",
++            endpoint, subject, request.headers.get("x-forwarded-for"),
++        )
+         raise HTTPException(
+             status_code=429,
+             detail=f"Rate limit exceeded: {max_calls} requests per {window_seconds}s",
+-            headers={"Retry-After": str(window_seconds)},
++            headers={"Retry-After": str(limiter.wait_s(subject))},
+         )
+-
+-    # Record this call
+-    _calls[key].append((now, 1))
+diff --git a/vespera_backend/main.py b/vespera_backend/main.py
+index 12dc3da..e24d2e6 100644
+--- a/vespera_backend/main.py
++++ b/vespera_backend/main.py
+@@ -17,7 +17,10 @@ import os
+ from contextlib import asynccontextmanager
+ 
+ from dotenv import load_dotenv
+-from fastapi import FastAPI
++from fastapi import Depends, FastAPI
++from fastapi.responses import JSONResponse
++from sqlalchemy import case, func, select, text
++from sqlalchemy.ext.asyncio import AsyncSession
+ from fastapi.middleware.cors import CORSMiddleware
+ 
+ # Load .env before any app imports that read settings
+@@ -29,7 +32,8 @@ from app.api.events import router as events_router      # noqa: E402
+ from app.api.sessions import router as sessions_router  # noqa: E402
+ from app.api.traces import router as traces_router      # noqa: E402
+ from app.api.twilight import router as twilight_router  # noqa: E402
+-from app.infrastructure.database import init_db         # noqa: E402
++from app.infrastructure.database import get_db, init_db  # noqa: E402
++from app.infrastructure.models import CatalogTrackIndex  # noqa: E402
+ from app.legacy import home_feed, explore_feed, search  # noqa: E402
+ 
+ log = logging.getLogger("vespera")
+@@ -102,49 +106,42 @@ app = create_app()
+ # ── Health endpoint ───────────────────────────────────────────────────────────
+ 
+ @app.get("/health", tags=["ops"])
+-async def health() -> dict:
+-    """Machine-readable health check used by hosting platforms and CI.
++async def health(db: AsyncSession = Depends(get_db)) -> JSONResponse:
++    """Readiness check: 200 when the DB answers, 503 when it does not.
+ 
+-    Returns HTTP 200 when the application is ready to serve requests.
+-    catalog_tracks=0 is not an error — it means the catalog has not been
+-    seeded yet (run python scripts/seed_jamendo.py).
++    catalog_tracks=0 is not an error: the catalog has simply not been loaded.
+     """
+-    from app.infrastructure.database import AsyncSessionLocal
+-    from app.infrastructure.models import CatalogTrackIndex
+-    from sqlalchemy import select, func
+-
+-    db_ok = False
+-    catalog_tracks = 0
+-    session_eligible = 0
+-    generated_at = None
+-
+     try:
+-        async with AsyncSessionLocal() as session:
+-            # Get counts
+-            result = await session.execute(select(CatalogTrackIndex))
+-            rows = result.scalars().all()
+-            catalog_tracks = len(rows)
+-            session_eligible = sum(1 for r in rows if r.session_eligible)
+-            
+-            # Get latest catalog_generated_at
+-            if rows:
+-                max_result = await session.execute(
+-                    select(func.max(CatalogTrackIndex.catalog_generated_at))
++        await db.execute(text("SELECT 1"))
++        row = (
++            await db.execute(
++                select(
++                    func.count(CatalogTrackIndex.id),
++                    func.coalesce(
++                        func.sum(case((CatalogTrackIndex.session_eligible.is_(True), 1), else_=0)), 0
++                    ),
++                    func.max(CatalogTrackIndex.indexed_at),
+                 )
+-                generated_at = max_result.scalar_one_or_none()
+-            
+-            db_ok = True
+-    except Exception as exc:
+-        log.error("Health check DB error: %s", exc)
+-
+-    return {
+-        "status": "ok" if db_ok else "degraded",
+-        "db": "ok" if db_ok else "error",
+-        "catalog_tracks": catalog_tracks,
+-        "session_eligible": session_eligible,
+-        "generated_at": generated_at.isoformat() if generated_at else None,
+-        "version": "0.12.0",
+-    }
++            )
++        ).one()
++    except Exception:
++        log.exception("Health check failed")
++        return JSONResponse(
++            {"status": "degraded", "db": "error", "catalog_tracks": 0,
++             "session_eligible": 0, "generated_at": None, "version": "0.12.0"},
++            status_code=503,
++        )
++    total, eligible, indexed_at = row
++    return JSONResponse(
++        {
++            "status": "ok",
++            "db": "ok",
++            "catalog_tracks": int(total),
++            "session_eligible": int(eligible),
++            "generated_at": indexed_at.isoformat() if indexed_at else None,
++            "version": "0.12.0",
++        }
++    )
+ 
+ 
+ if __name__ == "__main__":
+diff --git a/vespera_backend/render.yaml b/vespera_backend/render.yaml
+index 827a405..408ac51 100644
+--- a/vespera_backend/render.yaml
++++ b/vespera_backend/render.yaml
+@@ -21,6 +21,8 @@ services:
+         sync: false
+       - key: ALLOWED_ORIGINS
+         sync: false          # e.g. https://your-app.web.app,http://localhost:8080
++      - key: TRUSTED_PROXY_HOPS
++        value: "1"           # VERIFY after first deploy: see README "Rate limiting"
+       - key: RELOAD
+         value: "false"
+     healthCheckPath: /health
+diff --git a/vespera_backend/tests/conftest.py b/vespera_backend/tests/conftest.py
+index 18ff8d1..e75d3b5 100644
+--- a/vespera_backend/tests/conftest.py
++++ b/vespera_backend/tests/conftest.py
+@@ -1,14 +1,18 @@
+ """Shared test configuration.
+ 
+-Disables rate limiting for all tests to prevent 429 errors during rapid test execution.
++Rate limiting is off by default so unrelated tests can call public endpoints
++freely. Tests that exercise limiting turn it on with monkeypatch.setenv.
+ """
+ 
+-import os
+ import pytest
+ 
+-@pytest.fixture(scope="session", autouse=True)
+-def disable_rate_limiting():
+-    """Disable rate limiting for all tests."""
+-    os.environ["RATE_LIMIT_ENABLED"] = "false"
++from app.infrastructure.rate_limit import reset_rate_limits
++
++
++@pytest.fixture(autouse=True)
++def _rate_limits_off_by_default(monkeypatch):
++    monkeypatch.setenv("RATE_LIMIT_ENABLED", "false")
++    monkeypatch.delenv("TRUSTED_PROXY_HOPS", raising=False)
++    reset_rate_limits()
+     yield
+-    os.environ.pop("RATE_LIMIT_ENABLED", None)
++    reset_rate_limits()
+diff --git a/vespera_backend/tests/test_health.py b/vespera_backend/tests/test_health.py
+new file mode 100644
+index 0000000..c7a629d
+--- /dev/null
++++ b/vespera_backend/tests/test_health.py
+@@ -0,0 +1,83 @@
++from datetime import datetime, timezone
++
++import pytest
++import pytest_asyncio
++from httpx import ASGITransport, AsyncClient
++from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
++
++from app.infrastructure.database import Base, get_db
++from app.infrastructure.models import CatalogTrackIndex
++
++_engine = create_async_engine("sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False})
++_Session = async_sessionmaker(_engine, expire_on_commit=False, autoflush=False)
++
++
++@pytest_asyncio.fixture
++async def session():
++    async with _engine.begin() as conn:
++        import app.infrastructure.models  # noqa: F401
++        await conn.run_sync(Base.metadata.create_all)
++    async with _Session() as s:
++        yield s
++    async with _engine.begin() as conn:
++        await conn.run_sync(Base.metadata.drop_all)
++
++
++@pytest_asyncio.fixture
++async def client(session):
++    from main import app
++
++    async def _override():
++        yield session
++
++    app.dependency_overrides[get_db] = _override
++    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
++        yield ac
++    app.dependency_overrides.clear()
++
++
++def _row(track_id: str, eligible: bool) -> CatalogTrackIndex:
++    return CatalogTrackIndex(
++        track_id=track_id, title="t", artist="a", playable_ms=1000 if eligible else 0,
++        session_eligible=eligible, tags_text="", search_text="t a", catalog_version="v1",
++        indexed_at=datetime(2026, 11, 15, tzinfo=timezone.utc),
++    )
++
++
++@pytest.mark.asyncio
++async def test_health_ok_with_empty_catalog(client):
++    response = await client.get("/health")
++    assert response.status_code == 200
++    body = response.json()
++    assert body["status"] == "ok" and body["catalog_tracks"] == 0 and body["generated_at"] is None
++
++
++@pytest.mark.asyncio
++async def test_health_reports_counts_once_catalog_is_loaded(client, session):
++    session.add_all([_row("1", True), _row("2", True), _row("3", False)])
++    await session.commit()
++    body = (await client.get("/health")).json()
++    assert body["status"] == "ok" and body["db"] == "ok"
++    assert body["catalog_tracks"] == 3 and body["session_eligible"] == 2
++    assert body["generated_at"].startswith("2026-11-15")
++
++
++@pytest.mark.asyncio
++async def test_health_returns_503_when_db_fails(client):
++    from main import app
++
++    class _BrokenSession:
++        async def execute(self, *args, **kwargs):
++            raise RuntimeError("db down")
++
++    async def _broken():
++        yield _BrokenSession()
++
++    previous = app.dependency_overrides[get_db]
++    app.dependency_overrides[get_db] = _broken
++    try:
++        response = await client.get("/health")
++    finally:
++        app.dependency_overrides[get_db] = previous
++    assert response.status_code == 503
++    assert response.json()["status"] == "degraded"
+diff --git a/vespera_backend/tests/test_rate_limit.py b/vespera_backend/tests/test_rate_limit.py
+new file mode 100644
+index 0000000..113cba6
+--- /dev/null
++++ b/vespera_backend/tests/test_rate_limit.py
+@@ -0,0 +1,119 @@
++import pytest
++import pytest_asyncio
++from fastapi import HTTPException
++from httpx import ASGITransport, AsyncClient
++from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
++from starlette.requests import Request
++
++import app.infrastructure.models  # noqa: F401  (registers tables)
++from app.infrastructure.database import Base, get_db
++from app.infrastructure.rate_limit import check_rate_limit, client_ip, reset_rate_limits
++
++_engine = create_async_engine("sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False})
++_Session = async_sessionmaker(_engine, expire_on_commit=False, autoflush=False)
++
++
++def _request(peer: str = "10.0.0.1", xff: str | None = None) -> Request:
++    headers = [(b"x-forwarded-for", xff.encode())] if xff is not None else []
++    return Request(
++        {"type": "http", "method": "POST", "path": "/", "headers": headers,
++         "client": (peer, 1234), "query_string": b""}
++    )
++
++
++@pytest.fixture(autouse=True)
++def _limits_on(monkeypatch):
++    monkeypatch.setenv("RATE_LIMIT_ENABLED", "true")
++    reset_rate_limits()
++
++
++@pytest.mark.asyncio
++async def test_blocks_after_limit_and_sets_retry_after():
++    request = _request()
++    for _ in range(3):
++        await check_rate_limit(request, "t", 3, 60)
++    with pytest.raises(HTTPException) as exc:
++        await check_rate_limit(request, "t", 3, 60)
++    assert exc.value.status_code == 429
++    assert int(exc.value.headers["Retry-After"]) >= 1
++
++
++@pytest.mark.asyncio
++async def test_enabled_flag_is_read_on_every_call(monkeypatch):
++    monkeypatch.setenv("RATE_LIMIT_ENABLED", "false")
++    request = _request()
++    for _ in range(10):
++        await check_rate_limit(request, "t", 1, 60)
++
++
++@pytest.mark.asyncio
++async def test_explicit_keys_are_isolated():
++    request = _request()
++    for _ in range(2):
++        await check_rate_limit(request, "agent", 2, 60, key="user-a")
++    with pytest.raises(HTTPException):
++        await check_rate_limit(request, "agent", 2, 60, key="user-a")
++    await check_rate_limit(request, "agent", 2, 60, key="user-b")
++
++
++def test_forged_leftmost_forwarded_entries_are_ignored(monkeypatch):
++    monkeypatch.setenv("TRUSTED_PROXY_HOPS", "1")
++    first = client_ip(_request(xff="1.1.1.1, 203.0.113.9"))
++    second = client_ip(_request(xff="2.2.2.2, 203.0.113.9"))
++    assert first == second == "203.0.113.9"
++
++
++def test_default_uses_socket_peer_and_ignores_header():
++    assert client_ip(_request("10.0.0.1", "1.1.1.1")) == "10.0.0.1"
++
++
++def test_too_few_forwarded_entries_falls_back_to_peer(monkeypatch):
++    monkeypatch.setenv("TRUSTED_PROXY_HOPS", "2")
++    assert client_ip(_request("10.0.0.1", "203.0.113.9")) == "10.0.0.1"
++
++
++def test_invalid_hops_value_falls_back_to_peer(monkeypatch):
++    monkeypatch.setenv("TRUSTED_PROXY_HOPS", "abc")
++    assert client_ip(_request("10.0.0.1", "203.0.113.9")) == "10.0.0.1"
++
++
++@pytest_asyncio.fixture
++async def client():
++    from main import app
++
++    async with _engine.begin() as conn:
++        await conn.run_sync(Base.metadata.create_all)
++    async with _Session() as session:
++        async def _override():
++            yield session
++
++        app.dependency_overrides[get_db] = _override
++        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
++            yield ac
++        app.dependency_overrides.clear()
++    async with _engine.begin() as conn:
++        await conn.run_sync(Base.metadata.drop_all)
++
++
++@pytest.mark.asyncio
++async def test_bootstrap_endpoint_returns_429_on_sixth_call(client):
++    for _ in range(5):
++        assert (await client.post("/api/v1/auth/anonymous")).status_code == 201
++    response = await client.post("/api/v1/auth/anonymous")
++    assert response.status_code == 429
++    assert int(response.headers["Retry-After"]) >= 1
++
++
++@pytest.mark.asyncio
++async def test_global_bootstrap_cap_holds_when_ips_rotate(client, monkeypatch):
++    monkeypatch.setenv("TRUSTED_PROXY_HOPS", "1")
++    for i in range(120):
++        response = await client.post(
++            "/api/v1/auth/anonymous",
++            headers={"X-Forwarded-For": f"9.9.9.9, 198.51.100.{i % 250}, 203.0.113.{i}"},
++        )
++        assert response.status_code == 201, i
++    response = await client.post(
++        "/api/v1/auth/anonymous", headers={"X-Forwarded-For": "9.9.9.9, 203.0.113.250"}
++    )
++    assert response.status_code == 429
+-- 
+2.43.0
+

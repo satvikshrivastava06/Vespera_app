@@ -80,7 +80,7 @@ class TwilightService {
             headers: headers,
             body: body,
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 75));  // Allow for Render cold start
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body) as Map<String, dynamic>;
